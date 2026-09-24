@@ -6,6 +6,7 @@ import { Login } from './features/auth/login/login';
 import { Register } from './features/auth/register/register';
 import { TicketCreate } from './features/tickets/ticket-create/ticket-create';
 import { authGuard } from './core/guards/auth.guard';
+import {Page404} from './features/page404/page404';
 
 export const routes: Routes = [
   { path: '', component: Home },

@@ -1,4 +1,72 @@
+<section class="relative overflow-hidden">
 
-<section class="p-16">
-  <p>My Tickets</p>
+  <div class="pointer-events-none absolute inset-0 -z-10">
+    <div class="absolute -top-32 -left-32 h-[32rem] w-[32rem] rounded-full bg-blue-200/60 blur-3xl"></div>
+    <div class="absolute -bottom-40 -right-24 h-[28rem] w-[28rem] rounded-full bg-sky-100 blur-3xl"></div>
+  </div>
+
+  <div class="mx-auto min-h-screen max-w-5xl px-6 py-24 md:py-16">
+
+    <div class="text-center">
+      <h1 class="bg-gradient-to-r from-blue-600 to-sky-400 bg-clip-text p-4 text-6xl font-bold text-transparent">
+        Мои Тикети
+      </h1>
+      <a routerLink="/tickets/new"
+         class="mt-2 inline-block rounded-full bg-blue-600 px-8 py-3 font-semibold text-white shadow-lg shadow-blue-600/30 transition hover:-translate-y-0.5 hover:bg-blue-700">
+        + Ново барање
+      </a>
+    </div>
+
+    <div class="mt-14">
+
+      @if (loading()) {
+        <div class="space-y-4">
+          @for (i of [1, 2, 3]; track i) {
+            <div class="h-28 animate-pulse rounded-2xl border border-gray-200 bg-white/60"></div>
+          }
+        </div>
+      } @else if (error()) {
+        <p class="rounded-xl bg-red-50 px-5 py-4 text-red-700">{{ error() }}</p>
+      } @else {
+        <div class="space-y-4">
+          @for (t of tickets(); track t.id) {
+            <a [routerLink]="['/tickets', t.id]"
+               class="block rounded-2xl border border-gray-200 bg-white/80 p-6 text-left shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md">
+
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 class="text-xl font-semibold text-gray-900">{{ t.title }}</h2>
+                  <p class="mt-1 text-sm font-light text-gray-500">
+                    {{ t.category?.name ?? 'Без категорија' }} · #{{ t.id }}
+                  </p>
+                </div>
+
+                <span class="rounded-full px-3 py-1 text-sm font-medium" [class]="statusClasses[t.status]">
+                  {{ statusLabels[t.status] }}
+                </span>
+              </div>
+
+              <p class="mt-3 line-clamp-2 font-light text-gray-600">{{ t.description }}</p>
+
+              <div class="mt-4 flex items-center gap-4 text-xs text-gray-500">
+                <span>Поднесено: {{ t.created_at | date: 'dd.MM.yyyy HH:mm' }}</span>
+                @if (t.priority === 'high') {
+                  <span class="font-medium text-red-600">Приоритет: {{ priorityLabels[t.priority] }}</span>
+                }
+              </div>
+            </a>
+          } @empty {
+            <div class="rounded-2xl border border-dashed border-gray-300 bg-white/60 p-16 text-center">
+              <p class="text-lg font-medium text-gray-900">Сѐ уште немаш поднесено барање</p>
+              <p class="mt-1 font-light text-gray-600">Постави прашање до студентската служба и следи го статусот овде.</p>
+              <a routerLink="/tickets/new" class="mt-6 inline-block font-semibold text-blue-600 hover:underline">
+                Поднеси го првото барање →
+              </a>
+            </div>
+          }
+        </div>
+      }
+
+    </div>
+  </div>
 </section>

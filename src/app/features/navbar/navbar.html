@@ -6,7 +6,7 @@
     <a routerLink="/home" class="cursor-pointer"><img src="Logo_FINKI_UKIM_MK.jpg" alt="ФИНКИ" class="h-12 mx-auto"></a>
     <a routerLink="/contact" class="nav-link cursor-pointer">Контакт</a>
     @if (auth.isLoggedIn()) {
-      <button (click)="auth.logout()" class="nav-link">Одјава</button>
+      <a (click)="auth.logout()" class="nav-link">Одјава</a>
     } @else {
       <a routerLink="/login" class="nav-link">Најава</a>
     }
