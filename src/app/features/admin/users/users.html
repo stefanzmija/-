@@ -1,0 +1,113 @@
+<section class="relative isolate">
+  <div class="bg-grid absolute inset-x-0 top-0 -z-10 h-64 [mask-image:linear-gradient(to_bottom,black,transparent)]"></div>
+
+  <div class="mx-auto max-w-7xl px-4 pt-10 pb-20 sm:px-6 lg:px-8">
+    <div class="flex flex-col gap-2">
+      <p class="inline-flex items-center gap-1.5 text-sm font-medium text-violet-600">
+        <app-icon name="lock" class="size-3.5" /> Администрација
+      </p>
+      <h1 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Корисници</h1>
+      <p class="text-sm text-slate-500">Додели улога <span class="font-medium text-slate-700">Референт</span> на вработените во службата за да можат да ги обработуваат барањата.</p>
+    </div>
+
+    <div class="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      @for (s of stats(); track s.id) {
+        <button type="button" (click)="filter.set(s.id)"
+                class="card flex items-center gap-4 p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lg"
+                [class.ring-2]="filter() === s.id" [class.ring-brand-500]="filter() === s.id">
+          <span class="flex size-10 shrink-0 items-center justify-center rounded-xl" [class]="s.tone">
+            <app-icon [name]="s.icon" class="size-5" />
+          </span>
+          <span>
+            <span class="block text-2xl font-semibold tracking-tight text-slate-900 tabular-nums">{{ loading() ? '–' : counts()[s.id] }}</span>
+            <span class="block text-xs text-slate-500">{{ s.label }}</span>
+          </span>
+        </button>
+      }
+    </div>
+
+    <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="relative sm:w-80">
+        <app-icon name="search" class="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400" />
+        <input #search type="search" [value]="query()" (input)="query.set(search.value)" placeholder="Барај по име или индекс…" class="field pl-10" />
+      </div>
+      <button type="button" (click)="load()" class="btn btn-secondary">
+        <app-icon name="refresh" class="size-4" [class.animate-spin]="loading()" /> Освежи
+      </button>
+    </div>
+
+    <div class="card mt-4 overflow-hidden">
+      @if (error()) {
+        <div class="flex flex-col items-center px-6 py-16 text-center">
+          <app-icon name="alert" class="size-8 text-rose-500" />
+          <p class="mt-3 font-medium text-slate-900">{{ error() }}</p>
+          <button type="button" (click)="load()" class="btn btn-secondary mt-6">Обиди се повторно</button>
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="border-b border-slate-100 bg-slate-50/70 text-[11px] font-medium tracking-wider text-slate-400 uppercase">
+              <tr>
+                <th class="px-5 py-3 font-medium">Корисник</th>
+                <th class="px-5 py-3 font-medium">Индекс</th>
+                <th class="hidden px-5 py-3 font-medium md:table-cell">Регистриран</th>
+                <th class="px-5 py-3 font-medium">Улога</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              @if (loading()) {
+                @for (i of [1, 2, 3, 4]; track i) {
+                  <tr>
+                    <td class="px-5 py-4" colspan="4"><div class="h-5 animate-pulse rounded bg-slate-100"></div></td>
+                  </tr>
+                }
+              } @else {
+                @for (u of filtered(); track u.id) {
+                  <tr class="transition hover:bg-slate-50/60">
+                    <td class="px-5 py-3">
+                      <div class="flex items-center gap-3">
+                        <app-avatar [name]="u.full_name" [size]="34" />
+                        <div class="min-w-0">
+                          <p class="truncate font-medium text-slate-900">
+                            {{ u.full_name || 'Без име' }}
+                            @if (u.id === auth.userId()) {
+                              <span class="ml-1 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500">ти</span>
+                            }
+                          </p>
+                          <span class="mt-0.5 inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset" [class]="roleClasses[u.role]">
+                            {{ roleLabels[u.role] }}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-5 py-3 font-mono text-slate-500">{{ u.student_index || '—' }}</td>
+                    <td class="hidden px-5 py-3 text-slate-500 md:table-cell">{{ u.created_at | date: 'dd.MM.yyyy' }}</td>
+                    <td class="px-5 py-3">
+                      <div class="relative w-44">
+                        <select class="field appearance-none py-2 pr-9" [value]="u.role"
+                                [disabled]="u.id === auth.userId() || saving() === u.id"
+                                [title]="u.id === auth.userId() ? 'Не можеш да ја смениш сопствената улога' : ''"
+                                (change)="changeRole(u, $any($event.target))" aria-label="Улога">
+                          @for (r of roles; track r) {
+                            <option [value]="r">{{ roleLabels[r] }}</option>
+                          }
+                        </select>
+                        <app-icon [name]="saving() === u.id ? 'spinner' : 'chevron-down'"
+                                  class="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-slate-400"
+                                  [class.animate-spin]="saving() === u.id" />
+                      </div>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="4" class="px-5 py-16 text-center text-sm text-slate-500">Нема корисници што одговараат на пребарувањето.</td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</section>

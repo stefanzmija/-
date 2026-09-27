@@ -1,31 +1,52 @@
-<section class="mx-auto mt-16 max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-  <h1 class="text-3xl font-semibold text-gray-900">Најава</h1>
-  <p class="mt-1 text-sm font-light text-gray-600">Најави се со твојот студентски е-маил.</p>
+<app-auth-layout>
+  <h1 class="text-3xl font-semibold tracking-tight text-slate-900">Добредојде назад</h1>
+  <p class="mt-2 text-sm text-slate-500">Најави се за да ги видиш своите барања.</p>
 
-  <form [formGroup]="form" (ngSubmit)="submit()" class="mt-8 space-y-5">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="mt-8 space-y-5" novalidate>
     <div>
-      <label class="block text-sm font-medium text-gray-700">Е-маил</label>
-      <input formControlName="email" type="email"
-             class="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30" />
+      <label for="email" class="field-label">Е-пошта</label>
+      <input id="email" formControlName="email" type="email" autocomplete="email" placeholder="ime.prezime@students.finki.ukim.mk"
+             class="field" [class.field-invalid]="invalid('email')" />
+      @if (invalid('email')) {
+        <p class="mt-1.5 text-xs text-rose-600">Внеси валидна е-пошта.</p>
+      }
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-gray-700">Лозинка</label>
-      <input formControlName="password" type="password"
-             class="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30" />
+      <label for="password" class="field-label">Лозинка</label>
+      <div class="relative">
+        <input id="password" formControlName="password" autocomplete="current-password"
+               [type]="showPassword() ? 'text' : 'password'" placeholder="••••••••"
+               class="field pr-11" [class.field-invalid]="invalid('password')" />
+        <button type="button" (click)="showPassword.set(!showPassword())"
+                class="absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400 transition hover:text-slate-600"
+                [attr.aria-label]="showPassword() ? 'Сокриј лозинка' : 'Прикажи лозинка'">
+          <app-icon [name]="showPassword() ? 'eye-off' : 'eye'" class="size-4" />
+        </button>
+      </div>
+      @if (invalid('password')) {
+        <p class="mt-1.5 text-xs text-rose-600">Внеси ја лозинката.</p>
+      }
     </div>
 
     @if (error()) {
-      <p class="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{{ error() }}</p>
+      <div class="motion-preset-shake flex items-start gap-2.5 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700 ring-1 ring-rose-200">
+        <app-icon name="alert" class="mt-0.5 size-4 shrink-0" />
+        {{ error() }}
+      </div>
     }
 
-    <button type="submit" [disabled]="form.invalid || loading()"
-            class="w-full rounded-full bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50">
-      {{ loading() ? 'Се најавува…' : 'Најави се' }}
+    <button type="submit" [disabled]="loading()" class="btn btn-primary w-full py-3!">
+      @if (loading()) {
+        <app-icon name="spinner" class="size-4 animate-spin" /> Се најавуваш…
+      } @else {
+        Најави се <app-icon name="arrow-right" class="size-4" />
+      }
     </button>
   </form>
 
-  <p class="mt-6 text-center text-sm text-gray-600">
-    Немаш профил? <a routerLink="/register" class="font-medium text-blue-600 hover:underline">Регистрирај се</a>
+  <p class="mt-8 text-center text-sm text-slate-500">
+    Немаш профил?
+    <a routerLink="/register" class="font-semibold text-brand-600 transition hover:text-brand-700">Регистрирај се</a>
   </p>
-</section>
+</app-auth-layout>

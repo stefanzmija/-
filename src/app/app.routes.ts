@@ -1,19 +1,63 @@
 import { Routes } from '@angular/router';
-import { Home } from './features/home/home';
-import { Contact } from './features/contact/contact';
-import { MyTickets } from './features/my-tickets/my-tickets';
-import { Login } from './features/auth/login/login';
-import { Register } from './features/auth/register/register';
-import { TicketCreate } from './features/tickets/ticket-create/ticket-create';
-import { authGuard } from './core/guards/auth.guard';
-import {Page404} from './features/page404/page404';
+import { authGuard, guestGuard, roleGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', component: Home },
-  { path: 'contact', component: Contact },
-  { path: 'login', component: Login },
-  { path: 'register', component: Register },
-  { path: 'my-tickets', component: MyTickets, canActivate: [authGuard] },
-  { path: 'tickets/new', component: TicketCreate, canActivate: [authGuard] },
-  { path: '**', redirectTo: '' },
+  {
+    path: '',
+    title: 'Студентска служба · ФИНКИ',
+    loadComponent: () => import('./features/home/home').then((m) => m.Home),
+  },
+  {
+    path: 'contact',
+    title: 'Контакт · Студентска служба',
+    loadComponent: () => import('./features/contact/contact').then((m) => m.Contact),
+  },
+  {
+    path: 'login',
+    title: 'Најава · Студентска служба',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
+  },
+  {
+    path: 'register',
+    title: 'Регистрација · Студентска служба',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./features/auth/register/register').then((m) => m.Register),
+  },
+  {
+    path: 'tickets',
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        title: 'Барања · Студентска служба',
+        loadComponent: () =>
+          import('./features/tickets/ticket-list/ticket-list').then((m) => m.TicketList),
+      },
+      {
+        path: 'new',
+        title: 'Ново барање · Студентска служба',
+        loadComponent: () =>
+          import('./features/tickets/ticket-create/ticket-create').then((m) => m.TicketCreate),
+      },
+      {
+        path: ':id',
+        title: 'Барање · Студентска служба',
+        loadComponent: () =>
+          import('./features/tickets/ticket-detail/ticket-detail').then((m) => m.TicketDetail),
+      },
+    ],
+  },
+  { path: 'my-tickets', redirectTo: 'tickets' },
+  {
+    path: 'admin/users',
+    title: 'Корисници · Администрација',
+    canActivate: [roleGuard('admin')],
+    loadComponent: () => import('./features/admin/users/users').then((m) => m.Users),
+  },
+  {
+    path: '**',
+    title: 'Страницата не постои',
+    loadComponent: () => import('./features/page404/page404').then((m) => m.Page404),
+  },
 ];

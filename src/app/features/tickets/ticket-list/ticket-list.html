@@ -1,0 +1,211 @@
+<section class="relative isolate">
+  <div class="bg-grid absolute inset-x-0 top-0 -z-10 h-72 [mask-image:linear-gradient(to_bottom,black,transparent)]"></div>
+  <div class="absolute top-[-10rem] left-1/2 -z-10 h-80 w-[50rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-brand-300/25 to-accent/20 blur-3xl"></div>
+
+  <div class="mx-auto max-w-7xl px-4 pt-10 pb-20 sm:px-6 lg:px-8">
+
+    <!-- header -->
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="text-sm font-medium text-brand-600">
+          {{ auth.isStaff() ? 'Студентска служба' : 'Здраво, ' + auth.displayName().split(' ')[0] }}
+        </p>
+        <h1 class="mt-1 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+          {{ auth.isStaff() ? 'Сите барања' : 'Мои барања' }}
+        </h1>
+        <p class="mt-2 text-sm text-slate-500">
+          @if (auth.isStaff()) {
+            Преземи ги недоделените барања и одговарај на студентите.
+          } @else {
+            Сите твои барања до службата и нивниот статус.
+          }
+        </p>
+      </div>
+      @if (!auth.isStaff()) {
+        <a routerLink="/tickets/new" class="btn btn-primary self-start sm:self-auto" title="Кратенка: N">
+          <app-icon name="plus" class="size-4" /> Ново барање
+        </a>
+      }
+    </div>
+
+    <!-- stats -->
+    <div class="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      @for (s of stats(); track s.label) {
+        <button type="button" (click)="selectStat(s)"
+                class="card group flex items-center gap-4 p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lg"
+                [class.ring-2]="tab() === s.tab && (s.urgent ? priority() === 'high' : priority() === null)"
+                [class.ring-brand-500]="tab() === s.tab && (s.urgent ? priority() === 'high' : priority() === null)">
+          <span class="flex size-10 shrink-0 items-center justify-center rounded-xl" [class]="s.tone">
+            <app-icon [name]="s.icon" class="size-5" />
+          </span>
+          <span class="min-w-0">
+            @if (loading()) {
+              <span class="block h-7 w-8 animate-pulse rounded-md bg-slate-100"></span>
+            } @else {
+              <span class="block text-2xl font-semibold tracking-tight text-slate-900 tabular-nums">{{ s.value }}</span>
+            }
+            <span class="block truncate text-xs text-slate-500">{{ s.label }}</span>
+          </span>
+        </button>
+      }
+    </div>
+
+    <!-- toolbar -->
+    <div class="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center">
+      <div class="flex gap-1 overflow-x-auto rounded-xl bg-slate-100/80 p-1">
+        @for (t of tabs(); track t.id) {
+          <button type="button" (click)="tab.set(t.id); priority.set(null)"
+                  class="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap transition"
+                  [class]="tab() === t.id ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/80' : 'text-slate-500 hover:text-slate-800'">
+            {{ t.label }}
+            <span class="rounded-md px-1.5 text-[11px] tabular-nums"
+                  [class]="tab() === t.id ? 'bg-slate-100 text-slate-600' : 'bg-slate-200/60 text-slate-500'">
+              {{ counts()[t.id] }}
+            </span>
+          </button>
+        }
+      </div>
+
+      <div class="flex flex-1 flex-col gap-3 sm:flex-row lg:justify-end">
+        <div class="relative flex-1 lg:max-w-xs">
+          <app-icon name="search" class="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400" />
+          <input #search type="search" [value]="query()" (input)="query.set(search.value)"
+                 [placeholder]="auth.isStaff() ? 'Барај по наслов, #бр, студент, индекс…' : 'Барај по наслов или #бр…'"
+                 class="field pr-10 pl-10" />
+          <span class="kbd pointer-events-none absolute top-1/2 right-3 -translate-y-1/2">/</span>
+        </div>
+        <select class="field sm:w-48" [value]="category() ?? ''" (change)="setCategory($any($event.target).value)" aria-label="Категорија">
+          <option value="">Сите категории</option>
+          @for (c of categories(); track c.id) {
+            <option [value]="c.id">{{ c.name }}</option>
+          }
+        </select>
+        @if (auth.isStaff()) {
+          <select class="field sm:w-40" [value]="priority() ?? ''" (change)="setPriority($any($event.target).value)" aria-label="Приоритет">
+            <option value="">Секој приоритет</option>
+            <option value="high">Висок</option>
+            <option value="normal">Нормален</option>
+            <option value="low">Низок</option>
+          </select>
+        }
+        <select class="field sm:w-44" [value]="sort()" (change)="setSort($any($event.target).value)" aria-label="Подреди">
+          <option value="newest">Најнови прво</option>
+          <option value="updated">Последна активност</option>
+          <option value="priority">По приоритет</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- list -->
+    <div class="card mt-4 overflow-hidden">
+      @if (loading()) {
+        @for (i of [1, 2, 3, 4, 5]; track i) {
+          <div class="flex items-center gap-4 border-b border-slate-100 px-5 py-4 last:border-0">
+            <div class="h-3.5 w-3 animate-pulse rounded bg-slate-100"></div>
+            <div class="h-4 w-10 animate-pulse rounded bg-slate-100"></div>
+            <div class="h-4 flex-1 animate-pulse rounded bg-slate-100"></div>
+            <div class="h-5 w-24 animate-pulse rounded-full bg-slate-100"></div>
+          </div>
+        }
+      } @else if (error()) {
+        <div class="flex flex-col items-center px-6 py-16 text-center">
+          <div class="flex size-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+            <app-icon name="alert" class="size-6" />
+          </div>
+          <p class="mt-4 font-medium text-slate-900">Не можевме да ги вчитаме барањата</p>
+          <p class="mt-1 text-sm text-slate-500">{{ error() }}</p>
+          <button type="button" (click)="load()" class="btn btn-secondary mt-6">
+            <app-icon name="refresh" class="size-4" /> Обиди се повторно
+          </button>
+        </div>
+      } @else {
+        <!-- column headings -->
+        <div class="hidden items-center gap-4 border-b border-slate-100 bg-slate-50/70 px-5 py-2.5 text-[11px] font-medium tracking-wider text-slate-400 uppercase md:flex">
+          <span class="w-3"></span>
+          <span class="w-12">Бр.</span>
+          <span class="flex-1">Барање</span>
+          <span class="w-32">Статус</span>
+          @if (auth.isStaff()) { <span class="w-8 text-center">Реф.</span> }
+          <span class="w-10 text-center"><app-icon name="message" class="size-3.5" /></span>
+          <span class="w-24 text-right">Активност</span>
+        </div>
+
+        @for (t of filtered(); track t.id; let i = $index) {
+          <a [routerLink]="['/tickets', t.id]"
+             class="group flex items-center gap-4 border-b border-slate-100 px-5 py-3.5 transition last:border-0 hover:bg-slate-50/80">
+            <app-priority-icon [priority]="t.priority" class="w-3" />
+            <span class="hidden w-12 font-mono text-xs text-slate-400 md:inline">#{{ t.id }}</span>
+
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-medium text-slate-900 group-hover:text-brand-700">{{ t.title }}</p>
+              <p class="mt-0.5 flex items-center gap-1.5 truncate text-xs text-slate-500">
+                <span class="font-mono md:hidden">#{{ t.id }} ·</span>
+                <app-icon [name]="categoryIcon(t.category_id)" class="size-3.5 text-slate-400" />
+                {{ t.category?.name ?? 'Без категорија' }}
+                @if (auth.isStaff() && t.requester) {
+                  <span class="text-slate-300">·</span>
+                  <span class="text-slate-600">{{ t.requester.full_name }}</span>
+                  @if (t.requester.student_index) {
+                    <span class="font-mono text-slate-400">{{ t.requester.student_index }}</span>
+                  }
+                }
+              </p>
+            </div>
+
+            <span class="w-auto md:w-32"><app-status-badge [status]="t.status" /></span>
+
+            @if (auth.isStaff()) {
+              <span class="hidden w-8 justify-center md:flex">
+                @if (t.assignee) {
+                  <app-avatar [name]="t.assignee.full_name" [size]="24" />
+                } @else {
+                  <span class="flex size-6 items-center justify-center rounded-full border border-dashed border-slate-300 text-slate-300" title="Недоделено">
+                    <app-icon name="user" class="size-3" />
+                  </span>
+                }
+              </span>
+            }
+
+            <span class="hidden w-10 items-center justify-center gap-1 text-xs text-slate-400 tabular-nums md:flex">
+              @if (commentCount(t)) { {{ commentCount(t) }} }
+            </span>
+            <span class="hidden w-24 text-right text-xs text-slate-400 sm:inline" [title]="t.updated_at">{{ t.updated_at | relativeTime }}</span>
+          </a>
+        } @empty {
+          <div class="flex flex-col items-center px-6 py-20 text-center">
+            @if (tickets().length && hasFilters()) {
+              <div class="flex size-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+                <app-icon name="search" class="size-6" />
+              </div>
+              <p class="mt-4 font-medium text-slate-900">Нема барања што одговараат</p>
+              <p class="mt-1 text-sm text-slate-500">Пробај со друг збор или исчисти ги филтрите.</p>
+              <button type="button" (click)="clearFilters()" class="btn btn-secondary mt-6">Исчисти филтри</button>
+            } @else if (auth.isStaff()) {
+              <div class="flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                <app-icon name="check-circle" class="size-6" />
+              </div>
+              <p class="mt-4 font-medium text-slate-900">Нема барања</p>
+              <p class="mt-1 text-sm text-slate-500">Кога студент ќе поднесе барање, ќе се појави тука веднаш.</p>
+            } @else {
+              <div class="relative">
+                <div class="absolute inset-0 rounded-full bg-brand-400/30 blur-2xl"></div>
+                <div class="relative flex size-16 items-center justify-center rounded-2xl bg-white text-brand-600 shadow-soft ring-1 ring-slate-200">
+                  <app-icon name="inbox" class="size-7" />
+                </div>
+              </div>
+              <p class="mt-6 text-lg font-semibold text-slate-900">Сè уште немаш барања</p>
+              <p class="mt-1 max-w-sm text-sm text-slate-500">Кога ќе ти треба потврда, уверение или имаш прашање до службата — почни тука.</p>
+              <a routerLink="/tickets/new" class="btn btn-primary mt-6"><app-icon name="plus" class="size-4" /> Поднеси прво барање</a>
+            }
+          </div>
+        }
+      }
+    </div>
+
+    @if (!loading() && filtered().length) {
+      <p class="mt-3 text-center text-xs text-slate-400">
+        Прикажани {{ filtered().length }} од {{ tickets().length }} · Листата се освежува автоматски
+      </p>
+    }
+  </div>
+</section>

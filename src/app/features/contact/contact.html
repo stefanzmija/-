@@ -1,38 +1,73 @@
-<section class="w-4/5 mx-auto text-center">
-  <header class="py-12 text-3xl font-semibold text-blue-600/70 dropshadow-2xl">
-    <h1>Контакт</h1>
-    <p>Студентска служба на ФИНКИ</p>
-  </header>
+<section class="relative isolate overflow-hidden">
+  <div class="bg-grid absolute inset-0 -z-10 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,black,transparent)]"></div>
+  <div class="absolute top-[-12rem] left-1/2 -z-10 h-96 w-[56rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-brand-300/30 to-accent/25 blur-3xl"></div>
 
-  <div class="border p-6">
-    <article class="flex">
-      <h2>Адреса: </h2>
-      <p>ул. „Руѓер Бошковиќ“ 16<br>1000 Скопје</p>
-    </article>
-
-    <article>
-      <h2>Работно време</h2>
-      <p>Понеделник – Петок</p>
-      <p>[ВРЕМЕ]</p>
-    </article>
-
-    <article>
-      <h2>Е-пошта</h2>
-      <a href="mailto:[EMAIL]">[EMAIL]</a>
-    </article>
-
-    <article>
-      <h2>Телефон</h2>
-      <a href="tel:[PHONE]">[PHONE]</a>
-    </article>
+  <div class="mx-auto max-w-7xl px-4 pt-16 pb-12 text-center sm:px-6 lg:px-8">
+    <p class="motion-preset-fade text-sm font-semibold tracking-wide text-brand-600">Контакт</p>
+    <h1 class="motion-preset-blur-up motion-duration-700 mx-auto mt-3 max-w-2xl text-4xl font-semibold tracking-tight text-balance text-slate-900 sm:text-5xl">
+      Тука сме кога ти треба помош
+    </h1>
+    <p class="motion-preset-fade motion-delay-200 mx-auto mt-4 max-w-xl text-slate-600">
+      Најбрзо е преку барање во системот — но ако сакаш лично, еве каде и кога можеш да не најдеш.
+    </p>
   </div>
 
-  <aside>
-    <h2>Имаш барање?</h2>
-    <p>Наместо е-пошта, поднеси тикет и следи го статусот онлајн.</p>
-      <a routerLink="/tickets/new"
-         class="rounded-full bg-blue-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-blue-600/20 transition-all duration-300 hover:scale-105 hover:bg-blue-700">
-        Постави прашање →
-      </a>
-  </aside>
+  <div class="mx-auto grid max-w-7xl gap-4 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
+    @for (c of cards; track c.title; let i = $index) {
+      <div class="card motion-preset-slide-up motion-duration-500 group flex flex-col p-6"
+           [style.animation-delay.ms]="i * 80">
+        <div class="flex size-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600 ring-1 ring-brand-100 transition group-hover:bg-brand-600 group-hover:text-white">
+          <app-icon [name]="c.icon" class="size-5" />
+        </div>
+        <h2 class="mt-5 text-sm font-semibold text-slate-900">{{ c.title }}</h2>
+        @for (line of c.lines; track line; let first = $first) {
+          <p class="mt-1 text-sm break-words" [class]="first ? 'text-slate-700' : 'text-slate-500'">{{ line }}</p>
+        }
+        @if (c.href) {
+          <a [href]="c.href" [attr.target]="c.href.startsWith('http') ? '_blank' : null" rel="noopener"
+             class="mt-auto inline-flex items-center gap-1 pt-5 text-sm font-medium text-brand-600 transition hover:text-brand-700">
+            {{ c.action }} <app-icon name="arrow-right" class="size-3.5 transition group-hover:translate-x-0.5" />
+          </a>
+        }
+      </div>
+    }
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="mx-auto w-full max-w-7xl px-4 pt-12 sm:px-6 lg:px-8">
+  <div class="relative isolate flex flex-col items-start gap-6 overflow-hidden rounded-3xl bg-slate-950 p-8 text-white sm:p-10 lg:flex-row lg:items-center lg:justify-between">
+    <div class="bg-grid-dark absolute inset-0 -z-10 [mask-image:radial-gradient(ellipse_at_right,black,transparent_70%)]"></div>
+    <div class="absolute -right-20 -bottom-24 -z-10 size-80 rounded-full bg-brand-600/50 blur-3xl"></div>
+    <div class="flex items-start gap-5">
+      <div class="hidden size-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-accent ring-1 ring-white/15 sm:flex">
+        <app-icon name="ticket" class="size-6" />
+      </div>
+      <div>
+        <h2 class="text-2xl font-semibold tracking-tight">Прескокни ја редицата</h2>
+        <p class="mt-2 max-w-xl text-white/60">Поднеси барање онлајн и службата ќе ти одговори директно во системот — без е-пошта што се губи и без чекање во ходник.</p>
+      </div>
+    </div>
+    <a [routerLink]="auth.isLoggedIn() ? '/tickets/new' : '/register'" class="btn btn-lg shrink-0 bg-white text-slate-900 hover:bg-slate-100">
+      Поднеси барање <app-icon name="arrow-right" class="size-5" />
+    </a>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="mx-auto w-full max-w-3xl scroll-mt-24 px-4 py-24 sm:px-6">
+  <h2 class="text-center text-3xl font-semibold tracking-tight text-slate-900">Чести прашања</h2>
+  <div class="mt-10 space-y-3">
+    @for (item of faq; track item.q) {
+      <details class="card group p-0 open:shadow-lg [&_summary::-webkit-details-marker]:hidden">
+        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-left font-medium text-slate-900">
+          {{ item.q }}
+          <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition group-open:rotate-45 group-open:bg-brand-600 group-open:text-white">
+            <app-icon name="plus" class="size-4" />
+          </span>
+        </summary>
+        <p class="px-5 pb-5 text-sm leading-relaxed text-slate-600">{{ item.a }}</p>
+      </details>
+    }
+  </div>
 </section>
