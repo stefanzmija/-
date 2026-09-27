@@ -1,6 +1,5 @@
 @import "tailwindcss";
-
-@import "tailwindcss";
+@plugin "tailwindcss-motion";
 
 @theme {
   --font-sans: "Geologica", ui-sans-serif, system-ui, sans-serif;
@@ -13,7 +12,7 @@
     content: "";
     position: absolute;
     left: 50%;
-    bottom: -4px;
+    bottom: -16px;
     height: 2px;
     width: 0;
     background: #008aff;
@@ -23,4 +22,24 @@
     left: 0;
     width: 100%;
   }
+}
+
+@utility typewriter-* {
+  --chars: --value(integer);
+  width: calc(var(--chars) * 1ch + 2px);
+  white-space: nowrap;
+  overflow: hidden;
+  font-family: monospace;
+  border-right: 3px solid;
+  animation:
+    type-in calc(var(--chars) * 30ms) steps(var(--chars)) both,
+    caret 0.9s step-end infinite;
+}
+
+@keyframes type-in {
+  from { width: 0; }
+}
+
+@keyframes caret {
+  50% { border-color: transparent; }
 }

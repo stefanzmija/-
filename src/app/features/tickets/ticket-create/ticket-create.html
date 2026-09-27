@@ -10,14 +10,14 @@
     <div>
       <label class="block text-sm font-medium text-gray-700">Наслов</label>
       <input formControlName="title" type="text" placeholder="пр. Потврда за редовен студент"
-             class="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30" />
+             class="mt-1 w-full rounded-lg border border-gray-300  hover:border-blue-600 duration-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30" />
     </div>
 
     <div class="grid gap-6 sm:grid-cols-2">
       <div>
         <label class="block text-sm font-medium text-gray-700">Категорија</label>
         <select formControlName="category_id"
-                class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+                class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 hover:border-blue-600 duration-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
           <option value="" disabled>Избери категорија…</option>
           @for (c of categories(); track c.id) {
             <option [value]="c.id">{{ c.name }}</option>
@@ -28,7 +28,7 @@
       <div>
         <label class="block text-sm font-medium text-gray-700">Приоритет</label>
         <select formControlName="priority"
-                class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+                class="mt-1 w-full rounded-lg border border-gray-300 hover:border-blue-600 duration-300 bg-white px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
           <option value="low">Ниска</option>
           <option value="normal">Нормална</option>
           <option value="high">Висока</option>
@@ -40,7 +40,7 @@
       <label class="block text-sm font-medium text-gray-700">Опис</label>
       <textarea formControlName="description" rows="6"
                 placeholder="Опиши го барањето, наведи индекс, година, и сѐ што е важно…"
-                class="mt-1 w-full resize-y rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"></textarea>
+                class="mt-1 w-full resize-y rounded-lg border border-gray-300 hover:border-blue-600 duration-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"></textarea>
       @if (form.controls.description.touched && form.controls.description.invalid) {
         <p class="mt-1 text-xs text-red-600">Описот мора да има најмалку 10 карактери.</p>
       }
