@@ -1,60 +1,165 @@
-<section class="mx-auto mt-12 mb-20 max-w-2xl px-6">
-  <h1 class="text-4xl font-semibold tracking-tight text-gray-900">Ново барање</h1>
-  <p class="mt-2 font-light text-gray-600">
-    Опиши го барањето што е подетално за да добиеш побрз одговор.
-  </p>
+<section class="relative isolate">
+  <div class="bg-grid absolute inset-x-0 top-0 -z-10 h-64 [mask-image:linear-gradient(to_bottom,black,transparent)]"></div>
 
-  <form [formGroup]="form" (ngSubmit)="submit()"
-        class="mt-10 space-y-6 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+  <div class="mx-auto max-w-6xl px-4 pt-8 pb-20 sm:px-6 lg:px-8">
+    <a routerLink="/tickets" class="inline-flex items-center gap-1.5 text-sm text-slate-500 transition hover:text-slate-900">
+      <app-icon name="arrow-left" class="size-4" /> Назад кон барањата
+    </a>
 
-    <div>
-      <label class="block text-sm font-medium text-gray-700">Наслов</label>
-      <input formControlName="title" type="text" placeholder="пр. Потврда за редовен студент"
-             class="mt-1 w-full rounded-lg border border-gray-300  hover:border-blue-600 duration-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30" />
+    <div class="mt-6">
+      <h1 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Ново барање</h1>
+      <p class="mt-2 text-slate-500">Колку подетално го опишеш, толку побрзо ќе добиеш одговор.</p>
     </div>
 
-    <div class="grid gap-6 sm:grid-cols-2">
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Категорија</label>
-        <select formControlName="category_id"
-                class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 hover:border-blue-600 duration-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
-          <option value="" disabled>Избери категорија…</option>
-          @for (c of categories(); track c.id) {
-            <option [value]="c.id">{{ c.name }}</option>
+    <div class="mt-10 grid gap-8 lg:grid-cols-[1fr_20rem]">
+
+      <form [formGroup]="form" (ngSubmit)="submit()" (keydown)="onKeydown($event)" novalidate class="space-y-8">
+
+        <!-- 1. category -->
+        <fieldset>
+          <legend class="flex items-center gap-2 text-sm font-semibold text-slate-900">
+            <span class="flex size-5 items-center justify-center rounded-full bg-slate-900 font-mono text-[10px] text-white">1</span>
+            За што се однесува?
+          </legend>
+
+          <div class="mt-4 grid gap-2.5 sm:grid-cols-2">
+            @if (loadingCategories()) {
+              @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
+                <div class="h-[4.5rem] animate-pulse rounded-2xl bg-slate-100"></div>
+              }
+            }
+            @for (c of categories(); track c.id) {
+              <button type="button" (click)="pickCategory(c.id)"
+                      class="group flex items-start gap-3 rounded-2xl p-3.5 text-left transition"
+                      [class]="value().category_id === c.id
+                        ? 'bg-brand-50/70 ring-2 ring-brand-500'
+                        : 'bg-white ring-1 ring-slate-200 hover:ring-slate-300 hover:bg-slate-50/60'"
+                      [attr.aria-pressed]="value().category_id === c.id">
+                <span class="flex size-9 shrink-0 items-center justify-center rounded-xl transition"
+                      [class]="value().category_id === c.id ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-500 group-hover:text-slate-700'">
+                  <app-icon [name]="categoryIcon(c.id)" class="size-[18px]" />
+                </span>
+                <span class="min-w-0">
+                  <span class="block text-sm font-medium text-slate-900">{{ c.name }}</span>
+                  <span class="mt-0.5 block truncate text-xs text-slate-500">{{ categoryMeta[c.id]?.hint ?? '' }}</span>
+                </span>
+                @if (value().category_id === c.id) {
+                  <app-icon name="check-circle" class="motion-preset-pop ml-auto size-5 text-brand-600" />
+                }
+              </button>
+            }
+          </div>
+          @if (invalid('category_id')) {
+            <p class="mt-2 text-xs text-rose-600">Избери категорија.</p>
           }
-        </select>
-      </div>
+        </fieldset>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Приоритет</label>
-        <select formControlName="priority"
-                class="mt-1 w-full rounded-lg border border-gray-300 hover:border-blue-600 duration-300 bg-white px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
-          <option value="low">Ниска</option>
-          <option value="normal">Нормална</option>
-          <option value="high">Висока</option>
-        </select>
-      </div>
+        <!-- 2. details -->
+        <fieldset class="card space-y-5 p-5 sm:p-6">
+          <legend class="sr-only">Детали</legend>
+          <p class="flex items-center gap-2 text-sm font-semibold text-slate-900">
+            <span class="flex size-5 items-center justify-center rounded-full bg-slate-900 font-mono text-[10px] text-white">2</span>
+            Опиши го барањето
+          </p>
+
+          <div>
+            <div class="flex items-baseline justify-between">
+              <label for="title" class="field-label">Наслов</label>
+              <span class="text-xs tabular-nums"
+                    [class]="value().title!.length > titleMax ? 'text-rose-600' : 'text-slate-400'">
+                {{ value().title!.length }}/{{ titleMax }}
+              </span>
+            </div>
+            <input id="title" formControlName="title" type="text" placeholder="пр. Потврда за редовен студент за стипендија"
+                   class="field" [class.field-invalid]="invalid('title')" />
+            @if (invalid('title')) {
+              <p class="mt-1.5 text-xs text-rose-600">Насловот треба да има меѓу 5 и {{ titleMax }} карактери.</p>
+            }
+          </div>
+
+          <div>
+            <div class="flex items-baseline justify-between">
+              <label for="description" class="field-label">Опис</label>
+              @if (value().description!.length < descriptionMin) {
+                <span class="text-xs text-slate-400">уште {{ descriptionMin - value().description!.length }} карактери</span>
+              } @else {
+                <span class="flex items-center gap-1 text-xs text-emerald-600"><app-icon name="check" class="size-3.5" /> доволно</span>
+              }
+            </div>
+            <textarea id="description" formControlName="description" rows="7"
+                      placeholder="Наведи година на студии, предмет, за која институција ти треба документот и сè друго што е важно…"
+                      class="field resize-y leading-relaxed" [class.field-invalid]="invalid('description')"></textarea>
+            @if (invalid('description')) {
+              <p class="mt-1.5 text-xs text-rose-600">Описот треба да има најмалку {{ descriptionMin }} карактери.</p>
+            }
+          </div>
+
+          <div>
+            <span class="field-label">Приоритет</span>
+            <div class="grid grid-cols-3 gap-1 rounded-xl bg-slate-100/80 p-1" role="radiogroup" aria-label="Приоритет">
+              @for (p of priorities; track p) {
+                <button type="button" (click)="pickPriority(p)" role="radio" [attr.aria-checked]="value().priority === p"
+                        class="flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition"
+                        [class]="value().priority === p ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/80' : 'text-slate-500 hover:text-slate-800'">
+                  <app-priority-icon [priority]="p" />
+                  {{ priorityMeta[p].label }}
+                </button>
+              }
+            </div>
+            <p class="mt-1.5 text-xs text-slate-500">{{ priorityMeta[value().priority!].hint }}</p>
+          </div>
+        </fieldset>
+
+        <div class="flex flex-col-reverse items-stretch justify-between gap-3 sm:flex-row sm:items-center">
+          <p class="hidden items-center gap-1.5 text-xs text-slate-400 sm:flex">
+            <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span> за испраќање
+          </p>
+          <div class="flex gap-2">
+            <a routerLink="/tickets" class="btn btn-ghost flex-1 sm:flex-none">Откажи</a>
+            <button type="submit" [disabled]="saving()" class="btn btn-primary btn-lg flex-1 sm:flex-none">
+              @if (saving()) {
+                <app-icon name="spinner" class="size-4 animate-spin" /> Се испраќа…
+              } @else {
+                Испрати барање <app-icon name="send" class="size-4" />
+              }
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- side help -->
+      <aside class="space-y-4 lg:sticky lg:top-24 lg:self-start">
+        <div class="card p-5">
+          <p class="flex items-center gap-2 text-sm font-semibold text-slate-900">
+            <app-icon name="sparkles" class="size-4 text-brand-600" /> Совети за побрз одговор
+          </p>
+          <ul class="mt-4 space-y-3 text-sm text-slate-600">
+            <li class="flex gap-2.5"><app-icon name="check" class="mt-0.5 size-4 text-emerald-500" /> Наведи ја годината и смерот.</li>
+            <li class="flex gap-2.5"><app-icon name="check" class="mt-0.5 size-4 text-emerald-500" /> За потврди — за која институција ти треба.</li>
+            <li class="flex gap-2.5"><app-icon name="check" class="mt-0.5 size-4 text-emerald-500" /> За испити — предмет и испитна сесија.</li>
+            <li class="flex gap-2.5"><app-icon name="check" class="mt-0.5 size-4 text-emerald-500" /> Висок приоритет само ако има рок.</li>
+          </ul>
+        </div>
+
+        <div class="relative overflow-hidden rounded-2xl bg-slate-950 p-5 text-white">
+          <div class="absolute -top-16 -right-16 size-40 rounded-full bg-brand-500/40 blur-2xl"></div>
+          <p class="relative text-sm font-semibold">Што следува?</p>
+          <ol class="relative mt-4 space-y-4 text-sm">
+            <li class="flex gap-3">
+              <span class="mt-1 size-2 shrink-0 rounded-full bg-sky-400 ring-4 ring-sky-400/20"></span>
+              <span class="text-white/70"><span class="font-medium text-white">Отворено</span> — барањето стигнува до службата.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="mt-1 size-2 shrink-0 rounded-full bg-amber-400 ring-4 ring-amber-400/20"></span>
+              <span class="text-white/70"><span class="font-medium text-white">Во обработка</span> — референт го презема.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="mt-1 size-2 shrink-0 rounded-full bg-emerald-400 ring-4 ring-emerald-400/20"></span>
+              <span class="text-white/70"><span class="font-medium text-white">Решено</span> — добиваш одговор во барањето.</span>
+            </li>
+          </ol>
+        </div>
+      </aside>
     </div>
-
-    <div>
-      <label class="block text-sm font-medium text-gray-700">Опис</label>
-      <textarea formControlName="description" rows="6"
-                placeholder="Опиши го барањето, наведи индекс, година, и сѐ што е важно…"
-                class="mt-1 w-full resize-y rounded-lg border border-gray-300 hover:border-blue-600 duration-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"></textarea>
-      @if (form.controls.description.touched && form.controls.description.invalid) {
-        <p class="mt-1 text-xs text-red-600">Описот мора да има најмалку 10 карактери.</p>
-      }
-    </div>
-
-    @if (error()) {
-      <p class="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{{ error() }}</p>
-    }
-
-    <div class="flex justify-end gap-3 pt-2">
-      <button type="submit" [disabled]="form.invalid || saving()"
-              class="rounded-full bg-blue-600 px-8 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50">
-        {{ saving() ? 'Се испраќа…' : 'Испрати барање' }}
-      </button>
-    </div>
-  </form>
+  </div>
 </section>

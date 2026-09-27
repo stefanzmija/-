@@ -1,0 +1,56 @@
+<footer class="border-t border-slate-200/80 bg-slate-50/60">
+  <div class="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr] lg:px-8">
+    <div>
+      <app-brand-mark />
+      <p class="mt-4 max-w-xs text-sm leading-relaxed text-slate-500">
+        Онлајн систем за барања до Студентската служба на Факултетот за информатички науки и компјутерско инженерство.
+      </p>
+    </div>
+
+    <div>
+      <h3 class="text-xs font-semibold tracking-wider text-slate-900 uppercase">Систем</h3>
+      <ul class="mt-4 space-y-2.5 text-sm">
+        <li><a routerLink="/" class="text-slate-500 transition hover:text-slate-900">Почетна</a></li>
+        <li><a routerLink="/tickets" class="text-slate-500 transition hover:text-slate-900">Мои барања</a></li>
+        <li><a routerLink="/tickets/new" class="text-slate-500 transition hover:text-slate-900">Ново барање</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h3 class="text-xs font-semibold tracking-wider text-slate-900 uppercase">Поддршка</h3>
+      <ul class="mt-4 space-y-2.5 text-sm">
+        <li><a routerLink="/contact" class="text-slate-500 transition hover:text-slate-900">Контакт</a></li>
+        <li><a routerLink="/contact" fragment="faq" class="text-slate-500 transition hover:text-slate-900">Чести прашања</a></li>
+        <li><a href="mailto:studentski@finki.ukim.mk" class="text-slate-500 transition hover:text-slate-900">studentski&#64;finki.ukim.mk</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h3 class="text-xs font-semibold tracking-wider text-slate-900 uppercase">Факултет</h3>
+      <ul class="mt-4 space-y-2.5 text-sm">
+        <li>
+          <a href="https://finki.ukim.mk" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-slate-500 transition hover:text-slate-900">
+            finki.ukim.mk <app-icon name="arrow-up-right" class="size-3.5" />
+          </a>
+        </li>
+        <li>
+          <a href="https://www.iknow.ukim.mk" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-slate-500 transition hover:text-slate-900">
+            iKnow <app-icon name="arrow-up-right" class="size-3.5" />
+          </a>
+        </li>
+        <li>
+          <a href="https://courses.finki.ukim.mk" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-slate-500 transition hover:text-slate-900">
+            Courses <app-icon name="arrow-up-right" class="size-3.5" />
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="border-t border-slate-200/80">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-6 text-xs text-slate-400 sm:flex-row sm:px-6 lg:px-8">
+      <p>&copy; {{ year }} ФИНКИ — Универзитет „Св. Кирил и Методиј“ во Скопје</p>
+      <p>Проект по Интернет програмирање на клиентска страна · Angular + Supabase</p>
+    </div>
+  </div>
+</footer>

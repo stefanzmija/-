@@ -1,3 +1,5 @@
+import { UserRole } from './profile.model';
+
 export interface TicketComment {
   id: number;
   ticket_id: number;
@@ -6,6 +8,6 @@ export interface TicketComment {
   created_at: string;
 }
 
-export interface CommentWithAuthor extends TicketComment {
-  author: { full_name: string; role: string } | null;
+export interface CommentView extends TicketComment {
+  author: { id: string; full_name: string; role: UserRole } | null;
 }
