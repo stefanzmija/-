@@ -1,49 +1,86 @@
-<section class="mx-auto mt-16 max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-  <h1 class="text-3xl font-semibold text-gray-900">Регистрација</h1>
-  <p class="mt-1 text-sm font-light text-gray-600">Креирај профил со твојот студентски индекс.</p>
-
-  <form [formGroup]="form" (ngSubmit)="submit()" class="mt-8 space-y-5">
-    <div>
-      <label class="block text-sm font-medium text-gray-700">Име и презиме</label>
-      <input formControlName="fullName" type="text"
-             class="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30" />
+<app-auth-layout>
+  @if (checkInbox()) {
+    <div class="text-center">
+      <div class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 motion-preset-fade motion-duration-3500">
+        <app-icon name="mail" class="size-6" />
+      </div>
+      <h1 class="mt-6 text-2xl font-semibold text-slate-900">Провери ја е-поштата</h1>
+      <p class="mt-2 text-sm text-slate-500">
+        Ти испративме линк за потврда на {{ form.controls.email.value }}. Кликни на него, па најави се.
+      </p>
+      <a routerLink="/login" class="btn btn-primary mt-8 w-full">Кон најава</a>
     </div>
+  } @else {
+    <h1 class="text-3xl font-semibold text-slate-900">Креирај профил</h1>
+    <p class="mt-2 text-sm text-slate-500">Потребни ти се само индекс и е-пошта.</p>
 
-    <div>
-      <label class="block text-sm font-medium text-gray-700">Индекс</label>
-      <input formControlName="studentIndex" type="text" placeholder="221234" maxlength="6"
-             class="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30" />
-      @if (form.controls.studentIndex.touched && form.controls.studentIndex.invalid) {
-        <p class="mt-1 text-xs text-red-600">Индексот мора да има точно 6 цифри.</p>
+    <form [formGroup]="form" (ngSubmit)="submit()" class="mt-8 space-y-5" novalidate>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="col-span-2">
+          <label for="fullName" class="field-label">Име и презиме</label>
+          <input id="fullName" formControlName="fullName" type="text" autocomplete="name" placeholder="Петар Петровски"
+                 class="field" [class.border-rose-400]="invalid('fullName')" />
+        </div>
+        <div>
+          <label for="studentIndex" class="field-label">Индекс</label>
+          <input id="studentIndex" formControlName="studentIndex" type="text" inputmode="numeric" maxlength="6" placeholder="221234"
+                 class="field" [class.border-rose-400]="invalid('studentIndex')" />
+        </div>
+      </div>
+      @if (invalid('fullName')) {
+        <p class="text-xs text-rose-600">Внеси го целото име.</p>
       }
-    </div>
-
-    <div>
-      <label class="block text-sm font-medium text-gray-700">Е-маил</label>
-      <input formControlName="email" type="email"
-             class="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30" />
-    </div>
-
-    <div>
-      <label class="block text-sm font-medium text-gray-700">Лозинка</label>
-      <input formControlName="password" type="password"
-             class="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30" />
-      @if (form.controls.password.touched && form.controls.password.invalid) {
-        <p class="mt-1 text-xs text-red-600">Лозинката мора да има најмалку 6 карактери.</p>
+      @if (invalid('studentIndex')) {
+        <p class="text-xs text-rose-600">Индексот има точно 6 цифри.</p>
       }
-    </div>
 
-    @if (error()) {
-      <p class="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{{ error() }}</p>
-    }
+      <div>
+        <label for="email" class="field-label">Е-пошта</label>
+        <input id="email" formControlName="email" type="email" autocomplete="email" placeholder="ime.prezime@students.finki.ukim.mk"
+               class="field" [class.border-rose-400]="invalid('email')" />
+        @if (invalid('email')) {
+          <p class="mt-1.5 text-xs text-rose-600">Внеси валидна е-пошта.</p>
+        }
+      </div>
 
-    <button type="submit" [disabled]="form.invalid || loading()"
-            class="w-full rounded-full bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50">
-      {{ loading() ? 'Се регистрира…' : 'Регистрирај се' }}
-    </button>
-  </form>
+      <div>
+        <label for="password" class="field-label">Лозинка</label>
+        <div class="relative">
+          <input id="password" formControlName="password" autocomplete="new-password"
+                 [type]="showPassword() ? 'text' : 'password'" placeholder="Најмалку 6 карактери"
+                 class="field pr-11" [class.border-rose-400]="invalid('password')" />
+          <button type="button" (click)="showPassword.set(!showPassword())"
+                  class="absolute inset-y-0 right-0 px-3.5 text-slate-400 hover:text-slate-600">
+            <app-icon [name]="showPassword() ? 'eye-off' : 'eye'" class="size-4" />
+          </button>
+        </div>
+        @if (form.controls.password.value) {
+          <div class="mt-2 flex items-center gap-3">
+            <div class="grid flex-1 grid-cols-4 gap-1">
+              @for (i of [1, 2, 3, 4]; track i) {
+                <span class="h-1 rounded-full" [class]="i <= strength() ? strengthColor() : 'bg-slate-200'"></span>
+              }
+            </div>
+            <span class="text-xs text-slate-500">{{ strengthLabel() }}</span>
+          </div>
+        }
+      </div>
 
-  <p class="mt-6 text-center text-sm text-gray-600">
-    Веќе имаш профил? <a routerLink="/login" class="font-medium text-blue-600 hover:underline">Најави се</a>
-  </p>
-</section>
+      @if (error()) {
+        <div class="flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <app-icon name="alert" class="size-4 shrink-0" />
+          {{ error() }}
+        </div>
+      }
+
+      <button type="submit" [disabled]="loading()" class="btn btn-primary w-full py-3">
+        {{ loading() ? 'Се креира профилот…' : 'Креирај профил' }}
+      </button>
+    </form>
+
+    <p class="mt-8 text-center text-sm text-slate-500">
+      Веќе имаш профил?
+      <a routerLink="/login" class="font-semibold text-brand-600 hover:text-brand-700">Најави се</a>
+    </p>
+  }
+</app-auth-layout>

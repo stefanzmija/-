@@ -1,0 +1,67 @@
+<section class="mx-auto max-w-7xl px-4 pt-10 pb-20 sm:px-6 lg:px-8">
+  <h1 class="text-3xl font-semibold text-slate-900">Корисници</h1>
+  <p class="mt-2 text-sm text-slate-500">Додели улога „Референт“ на вработените во службата за да можат да ги обработуваат барањата.</p>
+
+  <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+    <div class="flex gap-1 rounded-xl bg-slate-100 p-1">
+      @for (f of filters; track f.id) {
+        <button type="button" (click)="filter.set(f.id)"
+                class="rounded-lg px-3 py-1.5 text-sm font-medium"
+                [class]="filter() === f.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'">
+          {{ f.label }} <span class="text-slate-400">{{ counts()[f.id] }}</span>
+        </button>
+      }
+    </div>
+    <input #search type="search" [value]="query()" (input)="query.set(search.value)"
+           placeholder="Барај по име или индекс…" class="field sm:ml-auto sm:w-72" />
+  </div>
+
+  <div class="card mt-4 overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead class="border-b border-slate-200 bg-slate-50 text-xs text-slate-500 uppercase">
+        <tr>
+          <th class="px-5 py-3 font-medium">Корисник</th>
+          <th class="px-5 py-3 font-medium">Индекс</th>
+          <th class="hidden px-5 py-3 font-medium md:table-cell">Регистриран</th>
+          <th class="px-5 py-3 font-medium">Улога</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        @if (loading()) {
+          <tr><td colspan="4" class="px-5 py-10 text-center text-slate-400">Се вчитува…</td></tr>
+        } @else if (error()) {
+          <tr><td colspan="4" class="px-5 py-10 text-center text-rose-600">{{ error() }}</td></tr>
+        } @else {
+          @for (u of filtered(); track u.id) {
+            <tr>
+              <td class="px-5 py-3">
+                <div class="flex items-center gap-3">
+                  <app-avatar [name]="u.full_name" [size]="32" />
+                  <span class="font-medium text-slate-900">
+                    {{ u.full_name || 'Без име' }}
+                    @if (u.id === auth.userId()) {
+                      <span class="text-xs text-slate-400">(ти)</span>
+                    }
+                  </span>
+                </div>
+              </td>
+              <td class="px-5 py-3 text-slate-500">{{ u.student_index || '—' }}</td>
+              <td class="hidden px-5 py-3 text-slate-500 md:table-cell">{{ u.created_at | date: 'dd.MM.yyyy' }}</td>
+              <td class="px-5 py-3">
+                <select class="field w-44 py-2" [value]="u.role"
+                        [disabled]="u.id === auth.userId() || saving() === u.id"
+                        (change)="changeRole(u, $any($event.target))">
+                  @for (r of roles; track r) {
+                    <option [value]="r">{{ roleLabels[r] }}</option>
+                  }
+                </select>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="4" class="px-5 py-10 text-center text-slate-500">Нема корисници.</td></tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

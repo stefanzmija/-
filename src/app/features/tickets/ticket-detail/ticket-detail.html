@@ -1,0 +1,171 @@
+<section class="mx-auto max-w-6xl px-4 pt-8 pb-20 sm:px-6 lg:px-8">
+  <a routerLink="/tickets" class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900">
+    <app-icon name="arrow-left" class="size-4" /> {{ auth.isStaff() ? 'Сите барања' : 'Мои барања' }}
+  </a>
+
+  @if (loading()) {
+    <div class="mt-6 h-8 w-2/3 animate-pulse rounded-lg bg-slate-100"></div>
+    <div class="mt-8 h-64 animate-pulse rounded-2xl bg-slate-100"></div>
+  } @else if (notFound()) {
+    <div class="mt-16 text-center">
+      <h1 class="text-2xl font-semibold text-slate-900">Барањето не е пронајдено</h1>
+      <p class="mt-2 text-sm text-slate-500">Или не постои, или немаш пристап до него.</p>
+      <a routerLink="/tickets" class="btn btn-primary mt-8">Кон барањата</a>
+    </div>
+  } @else if (ticket(); as t) {
+    <div class="mt-6 flex flex-wrap items-center gap-2">
+      <span class="text-sm text-slate-400">#{{ t.id }}</span>
+      <app-status-badge [status]="t.status" />
+    </div>
+    <h1 class="mt-3 text-3xl font-semibold text-slate-900">{{ t.title }}</h1>
+    <p class="mt-2 text-sm text-slate-500">
+      {{ t.requester?.full_name ?? 'Студент' }} поднесе барање {{ t.created_at | relativeTime }}
+    </p>
+
+    <div class="mt-8 grid gap-8 lg:grid-cols-3">
+      <div class="space-y-4 lg:col-span-2">
+        @if (t.status === 'waiting_student' && isOwner()) {
+          <div class="rounded-2xl bg-violet-50 p-4 text-sm text-violet-800">
+            <p class="font-semibold">Службата чека твој одговор</p>
+            <p class="mt-1">Одговори подолу и барањето автоматски се враќа кај референтот.</p>
+          </div>
+        }
+        @if (t.status === 'resolved' && isOwner()) {
+          <div class="flex flex-col gap-3 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-800 sm:flex-row sm:items-center">
+            <div class="flex-1">
+              <p class="font-semibold">Службата го означи барањето како решено</p>
+              <p class="mt-1">Ако е сè во ред, затвори го. Ако не, напиши одговор.</p>
+            </div>
+            <button type="button" (click)="closeAsOwner()" class="btn bg-emerald-600 text-white hover:bg-emerald-700">Затвори</button>
+          </div>
+        }
+
+        <div class="card p-5">
+          <div class="flex items-center gap-3">
+            <app-avatar [name]="t.requester?.full_name" [size]="36" />
+            <div>
+              <p class="text-sm font-semibold text-slate-900">{{ t.requester?.full_name ?? 'Студент' }}</p>
+              <p class="text-xs text-slate-500">{{ t.created_at | date: 'dd.MM.yyyy HH:mm' }}</p>
+            </div>
+          </div>
+          <p class="mt-4 whitespace-pre-wrap text-slate-700">{{ t.description }}</p>
+        </div>
+
+        @for (c of comments(); track c.id) {
+          <div class="rounded-2xl border p-5" [class]="isStaffComment(c) ? 'border-brand-200 bg-brand-50' : 'border-slate-200 bg-white'">
+            <div class="flex items-center gap-3">
+              <app-avatar [name]="c.author?.full_name" [size]="36" />
+              <div>
+                <p class="text-sm font-semibold text-slate-900">
+                  {{ c.author?.full_name ?? 'Непознат корисник' }}
+                  @if (isStaffComment(c)) {
+                    <span class="ml-1 rounded-full bg-brand-600 px-2 py-0.5 text-xs font-medium text-white">Студентска служба</span>
+                  }
+                </p>
+                <p class="text-xs text-slate-500">{{ c.created_at | date: 'dd.MM.yyyy HH:mm' }}</p>
+              </div>
+            </div>
+            <p class="mt-4 whitespace-pre-wrap text-slate-700">{{ c.body }}</p>
+          </div>
+        }
+
+        @if (canReply()) {
+          <div class="card p-4">
+            <textarea #composer rows="3" [value]="reply()" (input)="reply.set(composer.value)"
+                      [placeholder]="auth.isStaff() ? 'Одговори на студентот…' : 'Напиши одговор до службата…'"
+                      class="field"></textarea>
+            <div class="mt-3 flex justify-end">
+              <button type="button" (click)="sendReply()" [disabled]="!reply().trim() || sending()" class="btn btn-primary">
+                {{ sending() ? 'Се праќа…' : 'Испрати' }}
+                <app-icon name="send" class="size-4" />
+              </button>
+            </div>
+          </div>
+        } @else {
+          <p class="rounded-2xl border border-dashed border-slate-300 p-5 text-sm text-slate-500">
+            Барањето е завршено. Ако ти треба уште нешто, поднеси ново барање.
+          </p>
+        }
+      </div>
+
+      <aside class="space-y-4">
+        <div class="card space-y-5 p-5">
+          <div>
+            <p class="text-xs font-semibold text-slate-400 uppercase">Статус</p>
+            @if (auth.isStaff()) {
+              <select class="field mt-2" [value]="t.status" [disabled]="busy()" (change)="onStatusSelect($any($event.target))">
+                @for (s of statuses; track s) {
+                  <option [value]="s">{{ statusMeta[s].label }}</option>
+                }
+              </select>
+            } @else {
+              <div class="mt-2"><app-status-badge [status]="t.status" /></div>
+            }
+            <p class="mt-2 text-xs text-slate-500">{{ statusMeta[t.status].hint }}</p>
+          </div>
+
+          <div>
+            <p class="text-xs font-semibold text-slate-400 uppercase">Приоритет</p>
+            @if (auth.isStaff()) {
+              <select class="field mt-2" [value]="t.priority" [disabled]="busy()" (change)="onPrioritySelect($any($event.target))">
+                @for (p of priorities; track p) {
+                  <option [value]="p">{{ priorityMeta[p].label }}</option>
+                }
+              </select>
+            } @else {
+              <p class="mt-2 flex items-center gap-2 text-sm text-slate-700">
+                <app-priority-icon [priority]="t.priority" /> {{ priorityMeta[t.priority].label }}
+              </p>
+            }
+          </div>
+
+          <div>
+            <p class="text-xs font-semibold text-slate-400 uppercase">Референт</p>
+            @if (t.assignee) {
+              <p class="mt-2 flex items-center gap-2 text-sm text-slate-700">
+                <app-avatar [name]="t.assignee.full_name" [size]="26" /> {{ t.assignee.full_name }}
+              </p>
+            } @else {
+              <p class="mt-2 text-sm text-slate-500">Недоделено</p>
+            }
+            @if (auth.isStaff()) {
+              @if (assignedToMe()) {
+                <button type="button" (click)="unassign()" [disabled]="busy()" class="btn btn-ghost mt-3 w-full">Ослободи</button>
+              } @else {
+                <button type="button" (click)="assignToMe()" [disabled]="busy()" class="btn btn-secondary mt-3 w-full">
+                  <app-icon name="hand" class="size-4" /> Преземи го барањето
+                </button>
+              }
+            }
+          </div>
+        </div>
+
+        <div class="card space-y-3 p-5 text-sm">
+          <div class="flex justify-between gap-3">
+            <span class="text-slate-500">Категорија</span>
+            <span class="text-right font-medium text-slate-800">{{ t.category?.name ?? '—' }}</span>
+          </div>
+          <div class="flex justify-between gap-3">
+            <span class="text-slate-500">Индекс</span>
+            <span class="font-medium text-slate-800">{{ t.requester?.student_index ?? '—' }}</span>
+          </div>
+          <div class="flex justify-between gap-3">
+            <span class="text-slate-500">Поднесено</span>
+            <span class="text-slate-800">{{ t.created_at | date: 'dd.MM.yyyy HH:mm' }}</span>
+          </div>
+          <div class="flex justify-between gap-3">
+            <span class="text-slate-500">Последна промена</span>
+            <span class="text-slate-800">{{ t.updated_at | relativeTime }}</span>
+          </div>
+        </div>
+
+        @if (isOwner() && isActive(t.status)) {
+          <button type="button" (click)="closeAsOwner()" [disabled]="busy()"
+                  class="btn w-full border border-rose-200 bg-white text-rose-600 hover:bg-rose-50">
+            Повлечи барање
+          </button>
+        }
+      </aside>
+    </div>
+  }
+</section>

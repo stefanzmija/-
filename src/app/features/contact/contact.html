@@ -1,4 +1,56 @@
+<section class="bg-gradient-to-b from-brand-50 to-white motion-preset-fade motion-duration-2500">
+  <div class="mx-auto max-w-7xl px-4 pt-16 pb-12 text-center sm:px-6 lg:px-8">
+    <p class="text-sm font-semibold text-brand-600">Контакт</p>
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">Тука сме кога ти треба помош</h1>
+    <p class="mx-auto mt-4 max-w-xl text-slate-600">
+      Најбрзо е преку барање во системот, но можеш да не најдеш и лично.
+    </p>
+  </div>
 
-<section class="p-16">
-  <p>Contact</p>
+  <div class="mx-auto grid max-w-7xl gap-4 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
+    @for (c of cards; track c.title) {
+      <div class="card p-6 hover:scale-102 hover:shadow-lg duration-300">
+        <div class="flex size-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+          <app-icon [name]="c.icon" class="size-5" />
+        </div>
+        <h2 class="mt-5 text-sm font-semibold text-slate-900">{{ c.title }}</h2>
+        @for (line of c.lines; track line) {
+          <p class="mt-1 text-sm text-slate-600">{{ line }}</p>
+        }
+        @if (c.href) {
+          <a [href]="c.href" [attr.target]="c.href.startsWith('http') ? '_blank' : null" class="mt-4 inline-block text-sm font-medium text-brand-600 hover:text-brand-700">
+            {{ c.action }} →
+          </a>
+        }
+      </div>
+    }
+  </div>
+</section>
+
+<section class="mx-auto w-full max-w-7xl px-4 pt-12 sm:px-6 lg:px-8">
+  <div class="flex flex-col items-start gap-6 rounded-3xl bg-brand-600 p-8 text-white lg:flex-row lg:items-center lg:justify-between">
+    <div>
+      <h2 class="text-2xl font-semibold">Прескокни ја редицата</h2>
+      <p class="mt-2 max-w-xl text-brand-100">Поднеси барање онлајн и службата ќе ти одговори директно во системот.</p>
+    </div>
+    <a [routerLink]="auth.isLoggedIn() ? '/tickets/new' : '/register'"
+       class="btn bg-white px-6 py-3 text-base text-brand-700 hover:bg-brand-50">
+      Поднеси барање <app-icon name="arrow-right" class="size-5" />
+    </a>
+  </div>
+</section>
+
+<section id="faq" class="mx-auto w-full max-w-3xl px-4 py-20 sm:px-6">
+  <h2 class="text-center text-3xl font-semibold text-slate-900">Чести прашања</h2>
+  <div class="mt-10 space-y-3">
+    @for (item of faq; track item.q) {
+      <details class="card group p-5 hover:shadow-md duration-300">
+        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-slate-900">
+          {{ item.q }}
+          <app-icon name="chevron-down" class="size-5 text-slate-400 group-open:rotate-180" />
+        </summary>
+        <p class="mt-3 text-sm leading-relaxed text-slate-600">{{ item.a }}</p>
+      </details>
+    }
+  </div>
 </section>

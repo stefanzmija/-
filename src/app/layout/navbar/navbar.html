@@ -1,0 +1,119 @@
+<header class="border-b border-slate-200 bg-white/80 backdrop-blur">
+  <nav class="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
+    <a routerLink="/">
+      <app-brand-mark />
+    </a>
+
+    <div class="hidden items-center gap-1 md:flex">
+      <a routerLink="/" routerLinkActive="bg-slate-100 text-slate-900!" [routerLinkActiveOptions]="{ exact: true }"
+         class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 duration-300">Почетна</a>
+      @if (auth.isLoggedIn()) {
+        <a routerLink="/tickets" routerLinkActive="bg-slate-100 text-slate-900!"
+           class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 duration-300">
+          {{ auth.isStaff() ? 'Сите барања' : 'Мои барања' }}
+        </a>
+      }
+      @if (auth.isAdmin()) {
+        <a routerLink="/admin/users" routerLinkActive="bg-slate-100 text-slate-900!"
+           class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 duration-300">Корисници</a>
+      }
+      <a routerLink="/contact" routerLinkActive="bg-slate-100 text-slate-900!"
+         class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 duration-300">Контакт</a>
+    </div>
+
+    <div class="ml-auto flex items-center gap-2">
+      @if (!auth.ready()) {
+        <div class="h-9 w-40 animate-pulse rounded-xl bg-slate-100"></div>
+      } @else if (auth.isLoggedIn()) {
+        @if (!auth.isStaff()) {
+          <a routerLink="/tickets/new" class="btn btn-primary hidden px-3 py-2 sm:inline-flex hover:shadow-lg duration-300">
+            <app-icon name="plus" class="size-4" /> Ново барање
+          </a>
+        }
+
+        <div class="relative">
+          <button type="button" (click)="userMenuOpen.set(!userMenuOpen())"
+                  class="flex items-center gap-2 rounded-full py-1 pr-2 pl-1 hover:bg-slate-100">
+            <app-avatar [name]="auth.displayName()" [size]="30" />
+            <app-icon name="chevron-down" class="size-4 text-slate-400" />
+          </button>
+
+          @if (userMenuOpen()) {
+            <div class="absolute right-0 mt-2 w-72 rounded-2xl border border-slate-200 bg-white shadow-lg">
+              <div class="flex items-center gap-3 border-b border-slate-100 p-4">
+                <app-avatar [name]="auth.displayName()" [size]="40" />
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-semibold text-slate-900">{{ auth.displayName() }}</p>
+                  <p class="truncate text-xs text-slate-500">{{ auth.email() }}</p>
+                  @if (auth.role(); as role) {
+                    <span class="mt-1.5 inline-block rounded-full px-2 py-0.5 text-xs font-medium" [class]="roleClasses[role]">
+                      {{ roleLabels[role] }}
+                    </span>
+                  }
+                </div>
+              </div>
+              <div class="p-1.5">
+                <a routerLink="/tickets" class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                  <app-icon name="inbox" class="size-4 text-slate-400" />
+                  {{ auth.isStaff() ? 'Сите барања' : 'Мои барања' }}
+                </a>
+                @if (!auth.isStaff()) {
+                  <a routerLink="/tickets/new" class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                    <app-icon name="plus" class="size-4 text-slate-400" /> Ново барање
+                  </a>
+                }
+                @if (auth.isAdmin()) {
+                  <a routerLink="/admin/users" class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                    <app-icon name="users" class="size-4 text-slate-400" /> Корисници
+                  </a>
+                }
+              </div>
+              <div class="border-t border-slate-100 p-1.5">
+                <button type="button" (click)="logout()"
+                        class="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-rose-600 hover:bg-rose-50">
+                  <app-icon name="logout" class="size-4" /> Одјава
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <a routerLink="/login" class="btn btn-ghost hidden sm:inline-flex">Најава</a>
+        <a routerLink="/register" class="btn hidden bg-slate-900 text-white hover:bg-slate-800 sm:inline-flex">
+          Регистрирај се <app-icon name="arrow-right" class="size-4" />
+        </a>
+      }
+
+      <button type="button" (click)="mobileOpen.set(!mobileOpen())"
+              class="rounded-xl p-2 text-slate-600 hover:bg-slate-100 md:hidden" aria-label="Мени">
+        <app-icon [name]="mobileOpen() ? 'x' : 'menu'" class="size-5" />
+      </button>
+    </div>
+  </nav>
+
+  @if (mobileOpen()) {
+    <div class="border-t border-slate-200 bg-white px-4 pt-2 pb-4 md:hidden">
+      <a routerLink="/" class="block rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Почетна</a>
+      @if (auth.isLoggedIn()) {
+        <a routerLink="/tickets" class="block rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+          {{ auth.isStaff() ? 'Сите барања' : 'Мои барања' }}
+        </a>
+        @if (!auth.isStaff()) {
+          <a routerLink="/tickets/new" class="block rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Ново барање</a>
+        }
+      }
+      @if (auth.isAdmin()) {
+        <a routerLink="/admin/users" class="block rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Корисници</a>
+      }
+      <a routerLink="/contact" class="block rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Контакт</a>
+      @if (auth.isLoggedIn()) {
+        <button type="button" (click)="logout()" class="block w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium text-rose-600 hover:bg-rose-50">Одјава</button>
+      } @else {
+        <div class="mt-3 grid grid-cols-2 gap-2">
+          <a routerLink="/login" class="btn btn-secondary">Најава</a>
+          <a routerLink="/register" class="btn bg-slate-900 text-white">Регистрација</a>
+        </div>
+      }
+    </div>
+  }
+</header>

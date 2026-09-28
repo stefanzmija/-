@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { Navbar } from './features/navbar/navbar';
+import { Navbar } from './layout/navbar/navbar';
+import { Footer } from './layout/footer/footer';
+import { Toaster } from './shared/toaster/toaster';
 
 @Component({
-  imports: [RouterOutlet, Navbar],
   selector: 'app-root',
-  styleUrl: './app.css',
+  imports: [RouterOutlet, Navbar, Footer, Toaster],
   templateUrl: './app.html',
 })
 export class App {}

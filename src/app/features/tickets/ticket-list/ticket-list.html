@@ -1,0 +1,138 @@
+<section class="mx-auto max-w-7xl px-4 pt-10 pb-20 sm:px-6 lg:px-8  motion-preset-fade motion-duration-2500">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-3xl font-semibold text-slate-900">
+        {{ auth.isStaff() ? 'Сите барања' : 'Мои барања' }}
+      </h1>
+      <p class="mt-2 text-sm text-slate-500">
+        {{ auth.isStaff() ? 'Преземи ги недоделените барања и одговарај на студентите.' : 'Сите твои барања до службата и нивниот статус.' }}
+      </p>
+    </div>
+    @if (!auth.isStaff()) {
+      <a routerLink="/tickets/new" class="btn btn-primary self-start hover:shadow-lg duration-300">
+        <app-icon name="plus" class="size-4" /> Ново барање
+      </a>
+    }
+  </div>
+
+  <div class="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+    @for (s of stats(); track s.label) {
+      <button type="button" (click)="selectStat(s)"
+              class="card flex items-center cursor-pointer gap-4 p-4 text-left hover:shadow-lg duration-300"
+              [class.border-brand-500]="isSelected(s)">
+        <span class="flex size-10 shrink-0 items-center justify-center rounded-xl" [class]="s.tone">
+          <app-icon [name]="s.icon" class="size-5" />
+        </span>
+        <span>
+          <span class="block text-2xl font-semibold text-slate-900">{{ loading() ? '–' : s.value }}</span>
+          <span class="block text-xs text-slate-500">{{ s.label }}</span>
+        </span>
+      </button>
+    }
+  </div>
+
+  <div class="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center">
+    <div class="flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1">
+      @for (t of tabs(); track t.id) {
+        <button type="button" (click)="selectTab(t.id)"
+                class="rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap cursor-pointer duration-500"
+                [class]="tab() === t.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'">
+          {{ t.label }} <span class="text-slate-400">{{ counts()[t.id] }}</span>
+        </button>
+      }
+    </div>
+
+    <div class="flex flex-1 flex-col gap-3 sm:flex-row lg:justify-end">
+      <div class="relative flex-1 lg:max-w-xs">
+        <app-icon name="search" class="absolute top-3 left-3.5 size-4 text-slate-400 " />
+        <input  #search type="search" [value]="query()" (input)="query.set(search.value)"
+               placeholder="Барај…" class="field pl-10 hover:border-accent duration-300" />
+      </div>
+      <select class="field sm:w-48 hover:border-accent" [value]="category() ?? ''" (change)="setCategory($any($event.target).value)">
+        <option value="">Сите категории</option>
+        @for (c of categories(); track c.id) {
+          <option [value]="c.id">{{ c.name }}</option>
+        }
+      </select>
+      @if (auth.isStaff()) {
+        <select class="field sm:w-40 hover:border-accent" [value]="priority() ?? ''" (change)="setPriority($any($event.target).value)">
+          <option value="">Секој приоритет</option>
+          <option value="high">Висок</option>
+          <option value="normal">Нормален</option>
+          <option value="low">Низок</option>
+        </select>
+      }
+      <select class="field sm:w-44 hover:border-accent" (change)="setSort($any($event.target).value)">
+        <option value="newest">Најнови прво</option>
+        <option value="updated">Последна активност</option>
+        <option value="priority">По приоритет</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card mt-4 divide-y divide-slate-100 overflow-hidden">
+    @if (loading()) {
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="p-5">
+          <div class="h-4 w-2/3 animate-pulse rounded bg-slate-100"></div>
+        </div>
+      }
+    } @else if (error()) {
+      <div class="p-12 text-center">
+        <p class="font-medium text-slate-900">Не можевме да ги вчитаме барањата</p>
+        <p class="mt-1 text-sm text-slate-500">{{ error() }}</p>
+        <button type="button" (click)="load()" class="btn btn-secondary mt-6">Обиди се повторно</button>
+      </div>
+    } @else {
+      @for (t of filtered(); track t.id) {
+        <a [routerLink]="['/tickets', t.id]" class="flex items-center gap-4 px-5 py-4 hover:bg-slate-50 duration-300">
+          <app-priority-icon [priority]="t.priority" />
+          <span class="hidden w-12 text-xs text-slate-400 md:block ">#{{ t.id }}</span>
+
+          <div class="min-w-0 flex-1 ">
+            <p class="truncate text-sm font-medium text-slate-900">{{ t.title }}</p>
+            <p class="mt-0.5 truncate text-xs text-slate-500">
+              {{ t.category?.name ?? 'Без категорија' }}
+              @if (auth.isStaff() && t.requester) {
+                · {{ t.requester.full_name }} {{ t.requester.student_index }}
+              }
+            </p>
+          </div>
+
+          <app-status-badge [status]="t.status" />
+
+          @if (auth.isStaff()) {
+            <span class="hidden md:block">
+              @if (t.assignee) {
+                <app-avatar [name]="t.assignee.full_name" [size]="26" />
+              } @else {
+                <span class="text-xs text-slate-400">Недоделено</span>
+              }
+            </span>
+          }
+
+          <span class="hidden w-20 text-right text-xs text-slate-400 sm:block">{{ t.updated_at | relativeTime }}</span>
+        </a>
+      } @empty {
+        <div class="p-16 text-center">
+          @if (hasFilters()) {
+            <p class="font-medium text-slate-900">Нема барања што одговараат</p>
+            <button type="button" (click)="clearFilters()" class="btn btn-secondary mt-6">Исчисти филтри</button>
+          } @else if (auth.isStaff()) {
+            <p class="font-medium text-slate-900">Нема барања</p>
+            <p class="mt-1 text-sm text-slate-500">Кога студент ќе поднесе барање, ќе се појави тука.</p>
+          } @else {
+            <div class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+              <app-icon name="inbox" class="size-6" />
+            </div>
+            <p class="mt-5 text-lg font-semibold text-slate-900">Сè уште немаш барања</p>
+            <p class="mt-1 text-sm text-slate-500">Кога ќе ти треба потврда или имаш прашање — почни тука.</p>
+            <a routerLink="/tickets/new" class="btn btn-primary mt-6">
+              <app-icon name="plus" class="size-4" /> Поднеси прво барање
+            </a>
+          }
+        </div>
+      }
+    }
+  </div>
+</section>

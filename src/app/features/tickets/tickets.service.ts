@@ -1,52 +1,54 @@
 import { Injectable } from '@angular/core';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../../core/supabase.client';
 import { Category } from '../../core/models/category.model';
-import { NewTicket, Ticket, TicketStatus, TicketWithCategory } from '../../core/models/ticket.model';
-import { CommentWithAuthor } from '../../core/models/comment.model';
+import { NewTicket, Ticket, TicketPatch, TicketView } from '../../core/models/ticket.model';
+import { CommentView } from '../../core/models/comment.model';
+
+const TICKET_SELECT = `
+  *,
+  category:categories(id, name),
+  requester:profiles!created_by(id, full_name, student_index),
+  assignee:profiles!assigned_to(id, full_name),
+  comments:ticket_comments(count)
+`;
 
 @Injectable({ providedIn: 'root' })
 export class TicketsService {
-
   async getCategories(): Promise<Category[]> {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .order('id');
-
+    const { data, error } = await supabase.from('categories').select('*').order('id');
     if (error) throw error;
     return data as Category[];
   }
 
-  /** RLS decides the scope: a student gets their own, staff gets all. */
-  async getTickets(): Promise<TicketWithCategory[]> {
+  async getTickets(): Promise<TicketView[]> {
     const { data, error } = await supabase
       .from('tickets')
-      .select('*, category:categories(name)')
+      .select(TICKET_SELECT)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data as TicketWithCategory[];
+    return data as TicketView[];
   }
 
-  async getById(id: number): Promise<TicketWithCategory> {
+  async getById(id: number): Promise<TicketView | null> {
     const { data, error } = await supabase
       .from('tickets')
-      .select('*, category:categories(name)')
+      .select(TICKET_SELECT)
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
-    return data as TicketWithCategory;
+    return data as TicketView | null;
   }
 
   async create(input: NewTicket): Promise<Ticket> {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-    if (!userId) throw new Error('Не сте најавени.');
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) throw new Error('Не си најавен.');
 
     const { data, error } = await supabase
       .from('tickets')
-      .insert({ ...input, created_by: userId })
+      .insert({ ...input, created_by: auth.user.id })
       .select()
       .single();
 
@@ -54,42 +56,67 @@ export class TicketsService {
     return data as Ticket;
   }
 
-  async updateStatus(id: number, status: TicketStatus): Promise<void> {
-    const { error } = await supabase
-      .from('tickets')
-      .update({ status })
-      .eq('id', id);
-
+  async update(id: number, patch: TicketPatch): Promise<void> {
+    const { data, error } = await supabase.from('tickets').update(patch).eq('id', id).select('id');
     if (error) throw error;
+    if (!data?.length) throw new Error('Немаш дозвола за оваа промена.');
   }
 
-  async assignToMe(id: number): Promise<void> {
-    const { data: userData } = await supabase.auth.getUser();
-    const { error } = await supabase
-      .from('tickets')
-      .update({ assigned_to: userData.user?.id, status: 'in_progress' })
-      .eq('id', id);
-
-    if (error) throw error;
-  }
-
-  async getComments(ticketId: number): Promise<CommentWithAuthor[]> {
+  async getComments(ticketId: number): Promise<CommentView[]> {
     const { data, error } = await supabase
       .from('ticket_comments')
-      .select('*, author:profiles(full_name, role)')
+      .select('*, author:profiles!author_id(id, full_name, role)')
       .eq('ticket_id', ticketId)
       .order('created_at');
 
     if (error) throw error;
-    return data as CommentWithAuthor[];
+    return data as CommentView[];
   }
 
   async addComment(ticketId: number, body: string): Promise<void> {
-    const { data: userData } = await supabase.auth.getUser();
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) throw new Error('Не си најавен.');
+
     const { error } = await supabase
       .from('ticket_comments')
-      .insert({ ticket_id: ticketId, body, author_id: userData.user?.id });
+      .insert({ ticket_id: ticketId, body, author_id: auth.user.id });
 
     if (error) throw error;
   }
+
+  watchTicket(ticketId: number, onChange: () => void): RealtimeChannel {
+    return supabase
+      .channel(`ticket-${ticketId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'ticket_comments', filter: `ticket_id=eq.${ticketId}` },
+        onChange,
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'tickets', filter: `id=eq.${ticketId}` },
+        onChange,
+      )
+      .subscribe();
+  }
+
+  watchAllTickets(onChange: () => void): RealtimeChannel {
+    return supabase
+      .channel('tickets-list')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tickets' }, onChange)
+      .subscribe();
+  }
+
+  unwatch(channel: RealtimeChannel | null) {
+    if (channel) supabase.removeChannel(channel);
+  }
+}
+
+export function dbErrorMessage(e: unknown): string {
+  const msg = (e as { message?: string })?.message ?? '';
+  console.error(e);
+  if (/[а-шА-Ш]/.test(msg)) return msg;
+  if (msg.toLowerCase().includes('failed to fetch')) return 'Нема врска со серверот.';
+  if (msg.toLowerCase().includes('row-level security')) return 'Немаш дозвола за оваа акција.';
+  return 'Нешто тргна наопаку. Обиди се повторно.';
 }

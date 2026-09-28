@@ -1,26 +1,62 @@
 @import "tailwindcss";
-
-@import "tailwindcss";
+@plugin "tailwindcss-motion";
 
 @theme {
   --font-sans: "Geologica", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --color-brand-50: #eef3ff;
+  --color-brand-100: #dce6ff;
+  --color-brand-200: #c0d2ff;
+  --color-brand-300: #95b3fd;
+  --color-brand-400: #6389fa;
+  --color-brand-500: #3d63f4;
+  --color-brand-600: #2745e0;
+  --color-brand-700: #1e33c2;
+  --color-brand-800: #1f2e9c;
+  --color-brand-900: #1f2c7b;
+  --color-accent: #3fb0f6;
 }
 
+body {
+  @apply bg-white text-slate-900 antialiased;
+}
 
-@utility nav-link{
-  position: relative;
-  &::after{
-    content: "";
-    position: absolute;
-    left: 50%;
-    bottom: -4px;
-    height: 2px;
-    width: 0;
-    background: #008aff;
-    transition: width 0.3s ease, left 0.3s ease;
-  }
-  &:hover::after{
-    left: 0;
-    width: 100%;
-  }
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition disabled:opacity-50;
+}
+
+@utility btn-primary {
+  @apply bg-brand-600 text-white shadow-md shadow-brand-600/30 hover:bg-brand-700;
+}
+
+@utility btn-secondary {
+  @apply border border-slate-200 bg-white text-slate-800 hover:bg-slate-50;
+}
+
+@utility btn-ghost {
+  @apply text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+}
+
+@utility field {
+  @apply block w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none;
+}
+
+@utility field-label {
+  @apply mb-1.5 block text-sm font-medium text-slate-700;
+}
+
+@utility card {
+  @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+}
+
+@utility text-gradient {
+  @apply bg-gradient-to-r from-brand-600 to-accent bg-clip-text text-transparent;
+}
+
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(15 23 42 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(15 23 42 / 0.06) 1px, transparent 1px);
+  background-size: 44px 44px;
 }

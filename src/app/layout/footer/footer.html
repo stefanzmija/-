@@ -1,0 +1,32 @@
+<footer class="border-t border-slate-200 bg-slate-50">
+  <div class="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-4 lg:px-8">
+    <div class="md:col-span-2">
+      <app-brand-mark />
+      <p class="mt-4 max-w-xs text-sm text-slate-500">
+        Онлајн систем за барања до Студентската служба на ФИНКИ.
+      </p>
+    </div>
+
+    <div>
+      <h3 class="text-sm font-semibold text-slate-900">Систем</h3>
+      <ul class="mt-4 space-y-2 text-sm text-slate-500">
+        <li><a routerLink="/" class="hover:text-slate-900">Почетна</a></li>
+        <li><a routerLink="/tickets" class="hover:text-slate-900">Мои барања</a></li>
+        <li><a routerLink="/contact" class="hover:text-slate-900">Контакт</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h3 class="text-sm font-semibold text-slate-900">Факултет</h3>
+      <ul class="mt-4 space-y-2 text-sm text-slate-500">
+        <li><a href="https://finki.ukim.mk" target="_blank" class="hover:text-slate-900">finki.ukim.mk</a></li>
+        <li><a href="https://www.iknow.ukim.mk" target="_blank" class="hover:text-slate-900">iKnow</a></li>
+        <li><a href="mailto:studentski@finki.ukim.mk" class="hover:text-slate-900">studentski&#64;finki.ukim.mk</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="border-t border-slate-200 py-6 text-center text-xs text-slate-400">
+    &copy; {{ year }} ФИНКИ — Универзитет „Св. Кирил и Методиј“ во Скопје
+  </div>
+</footer>

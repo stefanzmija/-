@@ -1,1 +1,97 @@
-<app-hero/>
+<section class="relative isolate overflow-hidden">
+  <div class="bg-grid absolute inset-0 -z-10 [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)] motion-preset-pulse motion-duration-7500"></div>
+  <div class="absolute top-[-14rem] left-1/2 -z-10 h-[38rem] w-[70rem] -translate-x-1/2 rounded-full bg-gradient-to-tr from-brand-400/30 via-accent/25 to-violet-300/20 blur-3xl"></div>
+
+  <div class="mx-auto max-w-7xl px-4 pt-16 pb-24 text-center sm:px-6 sm:pt-24 lg:px-8">
+
+    <h1 class="motion-preset-blur-up motion-duration-1000 motion-delay-100 mx-auto mt-8 max-w-4xl text-5xl font-semibold tracking-tight text-balance text-slate-900 sm:text-6xl lg:text-7xl">
+      Студентска служба,
+      <span class="text-gradient">без редици.</span>
+    </h1>
+
+    <p class="motion-preset-fade motion-duration-1000 motion-delay-300 mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-pretty text-slate-600">
+      Поднеси барање за потврда, заверка на семестар или пријава на испит онлајн.
+      Следи го статусот во реално време и разговарај директно со референтот.
+    </p>
+
+    <div class="motion-preset-fade motion-duration-1000 motion-delay-500 mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+      @if (auth.isLoggedIn()) {
+        @if (!auth.isStaff()) {
+          <a routerLink="/tickets/new" class="btn btn-primary w-full rounded-2xl px-6 py-3.5 text-base sm:w-auto hover:scale-102 hover:shadow-lg duration-300">
+            <app-icon name="plus" class="size-5" /> Ново барање
+          </a>
+        }
+        <a routerLink="/tickets" class="btn btn-secondary w-full rounded-2xl px-6 py-3.5 text-base sm:w-auto hover:scale-102 hover:shadow-lg duration-300">
+          {{ auth.isStaff() ? 'Отвори ги сите барања' : 'Мои барања' }}
+          <app-icon name="arrow-right" class="size-5" />
+        </a>
+      } @else {
+        <a routerLink="/register" class="btn btn-primary w-full rounded-2xl px-6 py-3.5 text-base sm:w-auto">
+          Поднеси барање <app-icon name="arrow-right" class="size-5" />
+        </a>
+        <a routerLink="/login" class="btn btn-secondary w-full rounded-2xl px-6 py-3.5 text-base sm:w-auto">Веќе имам профил</a>
+      }
+    </div>
+
+    <ul class="motion-preset-fade motion-duration-1000 motion-delay-700 mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
+      <li class="flex items-center gap-1.5"><app-icon name="check" class="size-4 text-emerald-500" /> Најава со индекс</li>
+      <li class="flex items-center gap-1.5"><app-icon name="check" class="size-4 text-emerald-500" /> Без чекање пред шалтер</li>
+      <li class="flex items-center gap-1.5"><app-icon name="check" class="size-4 text-emerald-500" /> Статус во живо</li>
+    </ul>
+  </div>
+</section>
+
+<section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+  <div class="text-center motion-preset-pulse motion-duration-2000  motion-loop-once">
+    <p class="text-sm font-semibold text-brand-600">Како функционира</p>
+    <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Три чекори до решено барање</h2>
+  </div>
+
+  <div class="mt-12 grid gap-4 md:grid-cols-3">
+    @for (step of steps; track step.title; let i = $index) {
+      <div class="card p-6 hover:scale-105 duration-300">
+        <div class="flex items-center justify-between">
+          <div class="flex size-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+            <app-icon [name]="step.icon" class="size-5" />
+          </div>
+          <span class="text-sm font-semibold text-slate-300">0{{ i + 1 }}</span>
+        </div>
+        <h3 class="mt-5 font-semibold text-slate-900">{{ step.title }}</h3>
+        <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ step.text }}</p>
+      </div>
+    }
+  </div>
+</section>
+
+<section class="bg-slate-50">
+  <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+    <div class="text-center">
+      <p class="text-sm font-semibold text-brand-600">Категории</p>
+      <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Што ти треба денес?</h2>
+    </div>
+
+    <div class="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      @for (c of categories; track c.id) {
+        <a [routerLink]="['/tickets/new']" [queryParams]="{ category: c.id }"
+           class="card flex items-center gap-4 p-4 transition hover:border-brand-300 hover:shadow-md hover:scale-105">
+          <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+            <app-icon [name]="categoryIcon(c.id)" class="size-5" />
+          </div>
+          <span class="text-sm font-medium text-slate-900">{{ c.name }}</span>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+  <div class="rounded-3xl bg-brand-600 px-6 py-14 text-center text-white">
+    <h2 class="text-3xl font-semibold tracking-tight">Следниот пат, не чекај во ходник.</h2>
+    <p class="mx-auto mt-3 max-w-xl text-brand-100">Поднеси барање за помалку од минута и следи го до крај.</p>
+    <a [routerLink]="auth.isLoggedIn() ? '/tickets/new' : '/register'"
+       class="btn mt-8 bg-white px-6 py-3 text-base text-brand-700 hover:bg-brand-50 hover:shadow-2xl hover:scale-101 duration-300">
+      {{ auth.isLoggedIn() ? 'Ново барање' : 'Креирај профил' }}
+      <app-icon name="arrow-right" class="size-5" />
+    </a>
+  </div>
+</section>
