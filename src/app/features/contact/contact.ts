@@ -20,7 +20,6 @@ interface ContactCard {
 export class Contact {
   protected readonly auth = inject(AuthService);
 
-  /** Source: finki.ukim.mk → Студии → Студентска служба. */
   protected readonly cards: ContactCard[] = [
     {
       icon: 'pin',

@@ -2,7 +2,6 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 const MONTHS = ['јан', 'фев', 'мар', 'апр', 'мај', 'јун', 'јул', 'авг', 'сеп', 'окт', 'ное', 'дек'];
 
-/** "пред 5 мин", "вчера", "12 сеп" — times the way people say them. */
 @Pipe({ name: 'relativeTime' })
 export class RelativeTimePipe implements PipeTransform {
   transform(value: string | Date | null | undefined): string {

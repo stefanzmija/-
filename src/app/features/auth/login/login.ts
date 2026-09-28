@@ -18,7 +18,6 @@ export class Login {
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
 
-  /** ?redirect=/tickets/5 — set by the auth guard. */
   readonly redirect = input<string>();
 
   protected readonly error = signal<string | null>(null);

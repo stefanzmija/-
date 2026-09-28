@@ -5,10 +5,6 @@ import { Category } from '../../core/models/category.model';
 import { NewTicket, Ticket, TicketPatch, TicketView } from '../../core/models/ticket.model';
 import { CommentView } from '../../core/models/comment.model';
 
-/**
- * Two foreign keys point from tickets to profiles, so each join names the
- * column it follows (profiles!created_by / profiles!assigned_to).
- */
 const TICKET_SELECT = `
   *,
   category:categories(id, name),
@@ -25,7 +21,6 @@ export class TicketsService {
     return data as Category[];
   }
 
-  /** No user filter here: RLS returns a student's own tickets, or all of them for staff. */
   async getTickets(): Promise<TicketView[]> {
     const { data, error } = await supabase
       .from('tickets')
@@ -36,7 +31,6 @@ export class TicketsService {
     return data as TicketView[];
   }
 
-  /** Returns null when the ticket does not exist or RLS hides it. */
   async getById(id: number): Promise<TicketView | null> {
     const { data, error } = await supabase
       .from('tickets')
@@ -90,11 +84,6 @@ export class TicketsService {
     if (error) throw error;
   }
 
-  /**
-   * Live updates via Supabase Realtime. Needs the tables added to the
-   * `supabase_realtime` publication (see supabase/02_rules_and_realtime.sql);
-   * without it the app still works, it just won't auto-refresh.
-   */
   watchTicket(ticketId: number, onChange: () => void): RealtimeChannel {
     return supabase
       .channel(`ticket-${ticketId}`)
@@ -123,10 +112,9 @@ export class TicketsService {
   }
 }
 
-/** Supabase/Postgres errors → Macedonian text for toasts. */
 export function dbErrorMessage(e: unknown): string {
   const msg = (e as { message?: string })?.message ?? '';
-  // messages raised by our own triggers are already in Macedonian
+  console.error(e);
   if (/[а-шА-Ш]/.test(msg)) return msg;
   if (msg.toLowerCase().includes('failed to fetch')) return 'Нема врска со серверот.';
   if (msg.toLowerCase().includes('row-level security')) return 'Немаш дозвола за оваа акција.';

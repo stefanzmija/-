@@ -1,9 +1,5 @@
 import { Component, computed, input } from '@angular/core';
 
-/**
- * Minimal stroke icon set (24×24, Lucide-style). Each icon is one SVG path;
- * several sub-paths are joined with extra "M" commands.
- */
 const ICONS = {
   plus: 'M12 5v14M5 12h14',
   x: 'M18 6 6 18M6 6l12 12',

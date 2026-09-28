@@ -4,7 +4,6 @@ import { Profile, UserRole } from './models/profile.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProfilesService {
-  /** Admins see everyone (RLS). */
   async getAll(): Promise<Profile[]> {
     const { data, error } = await supabase
       .from('profiles')
@@ -23,7 +22,6 @@ export class ProfilesService {
       .select('id');
 
     if (error) throw error;
-    // RLS turns a forbidden update into "0 rows changed" instead of an error
     if (!data?.length) throw new Error('Немаш дозвола да ја смениш улогата.');
   }
 }

@@ -16,19 +16,16 @@ import { BrandMark } from '../../shared/brand-mark/brand-mark';
   host: {
     class: 'sticky top-0 z-50 block',
     '(document:click)': 'onDocumentClick($event)',
-    '(document:keydown.escape)': 'closeMenus()',
-    '(window:scroll)': 'onScroll()',
   },
 })
 export class Navbar {
   protected readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
-  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly host = inject(ElementRef);
 
   protected readonly userMenuOpen = signal(false);
   protected readonly mobileOpen = signal(false);
-  protected readonly scrolled = signal(false);
   protected readonly roleLabels = ROLE_LABELS;
   protected readonly roleClasses = ROLE_CLASSES;
 
@@ -42,11 +39,7 @@ export class Navbar {
   }
 
   protected onDocumentClick(event: MouseEvent) {
-    if (!this.host.nativeElement.contains(event.target as Node)) this.closeMenus();
-  }
-
-  protected onScroll() {
-    this.scrolled.set(window.scrollY > 8);
+    if (!this.host.nativeElement.contains(event.target)) this.closeMenus();
   }
 
   protected closeMenus() {
@@ -57,7 +50,7 @@ export class Navbar {
   protected async logout() {
     this.closeMenus();
     await this.auth.logout();
-    this.toast.info('Се одјави. Се гледаме!');
+    this.toast.info('Се одјави.');
     this.router.navigate(['/']);
   }
 }
