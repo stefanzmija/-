@@ -1,44 +1,43 @@
-<app-auth-layout headline="Креирај профил и заборави на редиците пред шалтерот.">
+<app-auth-layout>
   @if (checkInbox()) {
     <div class="text-center">
-      <div class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+      <div class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 motion-preset-fade motion-duration-3500">
         <app-icon name="mail" class="size-6" />
       </div>
-      <h1 class="mt-6 text-2xl font-semibold tracking-tight text-slate-900">Провери ја е-поштата</h1>
+      <h1 class="mt-6 text-2xl font-semibold text-slate-900">Провери ја е-поштата</h1>
       <p class="mt-2 text-sm text-slate-500">
-        Ти испративме линк за потврда на <span class="font-medium text-slate-700">{{ form.controls.email.value }}</span>.
-        Кликни на него, па најави се.
+        Ти испративме линк за потврда на {{ form.controls.email.value }}. Кликни на него, па најави се.
       </p>
       <a routerLink="/login" class="btn btn-primary mt-8 w-full">Кон најава</a>
     </div>
   } @else {
-    <h1 class="text-3xl font-semibold tracking-tight text-slate-900">Креирај профил</h1>
+    <h1 class="text-3xl font-semibold text-slate-900">Креирај профил</h1>
     <p class="mt-2 text-sm text-slate-500">Потребни ти се само индекс и е-пошта.</p>
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="mt-8 space-y-5" novalidate>
-      <div class="grid gap-5 sm:grid-cols-[1fr_7.5rem]">
-        <div>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="col-span-2">
           <label for="fullName" class="field-label">Име и презиме</label>
           <input id="fullName" formControlName="fullName" type="text" autocomplete="name" placeholder="Петар Петровски"
-                 class="field" [class.field-invalid]="invalid('fullName')" />
+                 class="field" [class.border-rose-400]="invalid('fullName')" />
         </div>
         <div>
           <label for="studentIndex" class="field-label">Индекс</label>
           <input id="studentIndex" formControlName="studentIndex" type="text" inputmode="numeric" maxlength="6" placeholder="221234"
-                 class="field font-mono" [class.field-invalid]="invalid('studentIndex')" />
+                 class="field" [class.border-rose-400]="invalid('studentIndex')" />
         </div>
       </div>
-      @if (invalid('fullName') || invalid('studentIndex')) {
-        <p class="-mt-3 text-xs text-rose-600">
-          @if (invalid('fullName')) { Внеси го целото име. }
-          @if (invalid('studentIndex')) { Индексот има точно 6 цифри. }
-        </p>
+      @if (invalid('fullName')) {
+        <p class="text-xs text-rose-600">Внеси го целото име.</p>
+      }
+      @if (invalid('studentIndex')) {
+        <p class="text-xs text-rose-600">Индексот има точно 6 цифри.</p>
       }
 
       <div>
         <label for="email" class="field-label">Е-пошта</label>
         <input id="email" formControlName="email" type="email" autocomplete="email" placeholder="ime.prezime@students.finki.ukim.mk"
-               class="field" [class.field-invalid]="invalid('email')" />
+               class="field" [class.border-rose-400]="invalid('email')" />
         @if (invalid('email')) {
           <p class="mt-1.5 text-xs text-rose-600">Внеси валидна е-пошта.</p>
         }
@@ -49,45 +48,39 @@
         <div class="relative">
           <input id="password" formControlName="password" autocomplete="new-password"
                  [type]="showPassword() ? 'text' : 'password'" placeholder="Најмалку 6 карактери"
-                 class="field pr-11" [class.field-invalid]="invalid('password')" />
+                 class="field pr-11" [class.border-rose-400]="invalid('password')" />
           <button type="button" (click)="showPassword.set(!showPassword())"
-                  class="absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400 transition hover:text-slate-600"
-                  [attr.aria-label]="showPassword() ? 'Сокриј лозинка' : 'Прикажи лозинка'">
+                  class="absolute inset-y-0 right-0 px-3.5 text-slate-400 hover:text-slate-600">
             <app-icon [name]="showPassword() ? 'eye-off' : 'eye'" class="size-4" />
           </button>
         </div>
         @if (form.controls.password.value) {
-          <div class="mt-2.5 flex items-center gap-3">
+          <div class="mt-2 flex items-center gap-3">
             <div class="grid flex-1 grid-cols-4 gap-1">
               @for (i of [1, 2, 3, 4]; track i) {
-                <span class="h-1 rounded-full transition-colors duration-300"
-                      [class]="i <= strength() ? strengthColor() : 'bg-slate-200'"></span>
+                <span class="h-1 rounded-full" [class]="i <= strength() ? strengthColor() : 'bg-slate-200'"></span>
               }
             </div>
-            <span class="w-24 text-right text-xs text-slate-500">{{ strengthLabel() }}</span>
+            <span class="text-xs text-slate-500">{{ strengthLabel() }}</span>
           </div>
         }
       </div>
 
       @if (error()) {
-        <div class="motion-preset-shake flex items-start gap-2.5 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700 ring-1 ring-rose-200">
-          <app-icon name="alert" class="mt-0.5 size-4 shrink-0" />
+        <div class="flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <app-icon name="alert" class="size-4 shrink-0" />
           {{ error() }}
         </div>
       }
 
-      <button type="submit" [disabled]="loading()" class="btn btn-primary w-full py-3!">
-        @if (loading()) {
-          <app-icon name="spinner" class="size-4 animate-spin" /> Се креира профилот…
-        } @else {
-          Креирај профил <app-icon name="arrow-right" class="size-4" />
-        }
+      <button type="submit" [disabled]="loading()" class="btn btn-primary w-full py-3">
+        {{ loading() ? 'Се креира профилот…' : 'Креирај профил' }}
       </button>
     </form>
 
     <p class="mt-8 text-center text-sm text-slate-500">
       Веќе имаш профил?
-      <a routerLink="/login" class="font-semibold text-brand-600 transition hover:text-brand-700">Најави се</a>
+      <a routerLink="/login" class="font-semibold text-brand-600 hover:text-brand-700">Најави се</a>
     </p>
   }
 </app-auth-layout>

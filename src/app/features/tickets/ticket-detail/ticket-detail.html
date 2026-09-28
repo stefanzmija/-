@@ -1,315 +1,171 @@
-<section class="relative isolate">
-  <div class="bg-grid absolute inset-x-0 top-0 -z-10 h-64 [mask-image:linear-gradient(to_bottom,black,transparent)]"></div>
+<section class="mx-auto max-w-6xl px-4 pt-8 pb-20 sm:px-6 lg:px-8">
+  <a routerLink="/tickets" class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900">
+    <app-icon name="arrow-left" class="size-4" /> {{ auth.isStaff() ? 'Сите барања' : 'Мои барања' }}
+  </a>
 
-  <div class="mx-auto max-w-7xl px-4 pt-8 pb-20 sm:px-6 lg:px-8">
-    <a routerLink="/tickets" class="inline-flex items-center gap-1.5 text-sm text-slate-500 transition hover:text-slate-900">
-      <app-icon name="arrow-left" class="size-4" /> {{ auth.isStaff() ? 'Сите барања' : 'Мои барања' }}
-    </a>
+  @if (loading()) {
+    <div class="mt-6 h-8 w-2/3 animate-pulse rounded-lg bg-slate-100"></div>
+    <div class="mt-8 h-64 animate-pulse rounded-2xl bg-slate-100"></div>
+  } @else if (notFound()) {
+    <div class="mt-16 text-center">
+      <h1 class="text-2xl font-semibold text-slate-900">Барањето не е пронајдено</h1>
+      <p class="mt-2 text-sm text-slate-500">Или не постои, или немаш пристап до него.</p>
+      <a routerLink="/tickets" class="btn btn-primary mt-8">Кон барањата</a>
+    </div>
+  } @else if (ticket(); as t) {
+    <div class="mt-6 flex flex-wrap items-center gap-2">
+      <span class="text-sm text-slate-400">#{{ t.id }}</span>
+      <app-status-badge [status]="t.status" />
+    </div>
+    <h1 class="mt-3 text-3xl font-semibold text-slate-900">{{ t.title }}</h1>
+    <p class="mt-2 text-sm text-slate-500">
+      {{ t.requester?.full_name ?? 'Студент' }} поднесе барање {{ t.created_at | relativeTime }}
+    </p>
 
-    @if (loading()) {
-      <!-- skeleton -->
-      <div class="mt-6 space-y-3">
-        <div class="h-5 w-40 animate-pulse rounded bg-slate-100"></div>
-        <div class="h-9 w-2/3 animate-pulse rounded-lg bg-slate-100"></div>
-      </div>
-      <div class="mt-10 grid gap-8 lg:grid-cols-[1fr_20rem]">
-        <div class="h-64 animate-pulse rounded-2xl bg-slate-100"></div>
-        <div class="h-80 animate-pulse rounded-2xl bg-slate-100"></div>
-      </div>
-    } @else if (notFound()) {
-      <div class="mx-auto mt-16 flex max-w-md flex-col items-center text-center">
-        <div class="flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
-          <app-icon name="lock" class="size-6" />
-        </div>
-        <h1 class="mt-6 text-2xl font-semibold tracking-tight text-slate-900">Барањето не е пронајдено</h1>
-        <p class="mt-2 text-sm text-slate-500">Или не постои, или немаш пристап до него. Студентите ги гледаат само своите барања.</p>
-        <a routerLink="/tickets" class="btn btn-primary mt-8">Кон барањата</a>
-      </div>
-    } @else if (ticket(); as t) {
-
-      <!-- header -->
-      <header class="mt-6">
-        <div class="flex flex-wrap items-center gap-2 text-sm">
-          <span class="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-500">#{{ t.id }}</span>
-          <app-status-badge [status]="t.status" />
-          <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs text-slate-600 ring-1 ring-slate-200">
-            <app-priority-icon [priority]="t.priority" /> {{ priorityMeta[t.priority].label }} приоритет
-          </span>
-        </div>
-        <h1 class="mt-3 text-2xl font-semibold tracking-tight text-balance text-slate-900 sm:text-3xl">{{ t.title }}</h1>
-        <p class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
-          <span class="font-medium text-slate-700">{{ t.requester?.full_name ?? 'Студент' }}</span>
-          поднесе барање {{ t.created_at | relativeTime }}
-          <span class="text-slate-300">·</span>
-          <span class="inline-flex items-center gap-1"><app-icon name="message" class="size-3.5" /> {{ comments().length }} одговори</span>
-        </p>
-      </header>
-
-      <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_20rem]">
-
-        <!-- ============ conversation ============ -->
-        <div class="min-w-0">
-
-          @if (t.status === 'waiting_student' && isOwner()) {
-            <div class="motion-preset-slide-down mb-6 flex items-start gap-3 rounded-2xl bg-violet-50 p-4 ring-1 ring-violet-200">
-              <span class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white">
-                <app-icon name="bell" class="size-4" />
-              </span>
-              <div class="flex-1">
-                <p class="text-sm font-semibold text-violet-900">Службата чека твој одговор</p>
-                <p class="mt-0.5 text-sm text-violet-700">Прочитај го последниот коментар и одговори — барањето автоматски се враќа кај референтот.</p>
-              </div>
-              <button type="button" (click)="focusComposer()" class="btn btn-sm hidden bg-violet-600 text-white hover:bg-violet-700 sm:inline-flex">Одговори</button>
-            </div>
-          }
-          @if (t.status === 'resolved' && isOwner()) {
-            <div class="motion-preset-slide-down mb-6 flex flex-col gap-3 rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-200 sm:flex-row sm:items-center">
-              <span class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white">
-                <app-icon name="check-circle" class="size-4" />
-              </span>
-              <div class="flex-1">
-                <p class="text-sm font-semibold text-emerald-900">Службата го означи барањето како решено</p>
-                <p class="mt-0.5 text-sm text-emerald-700">Ако е сè во ред, затвори го. Ако не, напиши одговор подолу.</p>
-              </div>
-              <button type="button" (click)="closeAsOwner()" class="btn btn-sm bg-emerald-600 text-white hover:bg-emerald-700">Затвори барање</button>
-            </div>
-          }
-
-          <div class="relative">
-          <!-- timeline line -->
-          <span class="absolute top-5 bottom-5 left-[19px] w-px bg-slate-200" aria-hidden="true"></span>
-          <ol class="relative space-y-6">
-
-            <!-- original request -->
-            <li class="relative flex gap-4">
-              <app-avatar [name]="t.requester?.full_name" [size]="40" />
-              <article class="card min-w-0 flex-1 overflow-hidden">
-                <div class="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 text-sm">
-                  <span class="font-semibold text-slate-900">{{ t.requester?.full_name ?? 'Студент' }}</span>
-                  @if (auth.isStaff() && t.requester?.student_index) {
-                    <span class="font-mono text-xs text-slate-400">{{ t.requester?.student_index }}</span>
-                  }
-                  <span class="text-slate-400">·</span>
-                  <time class="text-slate-500" [title]="t.created_at | date: 'dd.MM.yyyy HH:mm'">{{ t.created_at | relativeTime }}</time>
-                  <span class="ml-auto rounded-md bg-white px-2 py-0.5 text-[11px] text-slate-500 ring-1 ring-slate-200">Барање</span>
-                </div>
-                <p class="px-4 py-4 text-[15px] leading-relaxed break-words whitespace-pre-wrap text-slate-700">{{ t.description }}</p>
-              </article>
-            </li>
-
-            @for (c of comments(); track c.id) {
-              @let staff = c.author?.role === 'staff' || c.author?.role === 'admin';
-              <li class="motion-preset-fade motion-duration-300 relative flex gap-4">
-                @if (staff) {
-                  <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-700 ring-4 ring-white">
-                    <span class="flex h-4 items-center gap-[2px]">
-                      <span class="h-4 w-[3px] rounded-[1px] bg-white"></span>
-                      <span class="size-4 rounded-full border-[3px] border-accent"></span>
-                    </span>
-                  </span>
-                } @else {
-                  <app-avatar [name]="c.author?.full_name" [size]="40" />
-                }
-                <article class="min-w-0 flex-1 overflow-hidden rounded-2xl shadow-soft ring-1"
-                         [class]="staff ? 'bg-brand-50/40 ring-brand-200/70' : 'bg-white ring-slate-200/80'">
-                  <div class="flex flex-wrap items-center gap-x-2 gap-y-1 border-b px-4 py-2.5 text-sm"
-                       [class]="staff ? 'border-brand-100 bg-brand-50/70' : 'border-slate-100 bg-slate-50/70'">
-                    <span class="font-semibold text-slate-900">{{ c.author?.full_name ?? 'Непознат корисник' }}</span>
-                    @if (staff) {
-                      <span class="inline-flex items-center gap-1 rounded-full bg-brand-600 px-2 py-0.5 text-[11px] font-medium text-white">
-                        <app-icon name="shield-check" class="size-3" /> Студентска служба
-                      </span>
-                    }
-                    <span class="text-slate-400">·</span>
-                    <time class="text-slate-500" [title]="c.created_at | date: 'dd.MM.yyyy HH:mm'">{{ c.created_at | relativeTime }}</time>
-                  </div>
-                  <p class="px-4 py-3.5 text-[15px] leading-relaxed break-words whitespace-pre-wrap text-slate-700">{{ c.body }}</p>
-                </article>
-              </li>
-            }
-
-            <!-- composer -->
-            <li class="relative flex gap-4">
-              <app-avatar [name]="auth.displayName()" [size]="40" />
-              @if (canReply()) {
-                <div class="card min-w-0 flex-1 overflow-hidden transition focus-within:ring-2 focus-within:ring-brand-500">
-                  <textarea #composer rows="3" [value]="reply()" (input)="reply.set(composer.value)" (keydown)="onComposerKeydown($event)"
-                            [placeholder]="auth.isStaff() ? 'Одговори на студентот…' : 'Напиши одговор или прашање до службата…'"
-                            class="field-sizing-content block max-h-80 min-h-24 w-full resize-none border-0 bg-transparent px-4 pt-3.5 text-[15px] leading-relaxed text-slate-800 placeholder:text-slate-400 focus:outline-none"></textarea>
-                  <div class="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/60 px-3 py-2">
-                    <p class="hidden items-center gap-1.5 text-xs text-slate-400 sm:flex">
-                      <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span>
-                    </p>
-                    <button type="button" (click)="sendReply()" [disabled]="!reply().trim() || sending()" class="btn btn-primary btn-sm ml-auto">
-                      @if (sending()) {
-                        <app-icon name="spinner" class="size-3.5 animate-spin" /> Се праќа…
-                      } @else {
-                        Испрати <app-icon name="send" class="size-3.5" />
-                      }
-                    </button>
-                  </div>
-                </div>
-              } @else {
-                <div class="flex flex-1 items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50/60 px-4 py-5 text-sm text-slate-500">
-                  <app-icon name="lock" class="size-4" />
-                  Барањето е {{ statusMeta[t.status].label.toLowerCase() }}. Ако ти треба уште нешто, поднеси ново барање.
-                </div>
-              }
-            </li>
-          </ol>
+    <div class="mt-8 grid gap-8 lg:grid-cols-3">
+      <div class="space-y-4 lg:col-span-2">
+        @if (t.status === 'waiting_student' && isOwner()) {
+          <div class="rounded-2xl bg-violet-50 p-4 text-sm text-violet-800">
+            <p class="font-semibold">Службата чека твој одговор</p>
+            <p class="mt-1">Одговори подолу и барањето автоматски се враќа кај референтот.</p>
           </div>
+        }
+        @if (t.status === 'resolved' && isOwner()) {
+          <div class="flex flex-col gap-3 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-800 sm:flex-row sm:items-center">
+            <div class="flex-1">
+              <p class="font-semibold">Службата го означи барањето како решено</p>
+              <p class="mt-1">Ако е сè во ред, затвори го. Ако не, напиши одговор.</p>
+            </div>
+            <button type="button" (click)="closeAsOwner()" class="btn bg-emerald-600 text-white hover:bg-emerald-700">Затвори</button>
+          </div>
+        }
+
+        <div class="card p-5">
+          <div class="flex items-center gap-3">
+            <app-avatar [name]="t.requester?.full_name" [size]="36" />
+            <div>
+              <p class="text-sm font-semibold text-slate-900">{{ t.requester?.full_name ?? 'Студент' }}</p>
+              <p class="text-xs text-slate-500">{{ t.created_at | date: 'dd.MM.yyyy HH:mm' }}</p>
+            </div>
+          </div>
+          <p class="mt-4 whitespace-pre-wrap text-slate-700">{{ t.description }}</p>
         </div>
 
-        <!-- ============ sidebar ============ -->
-        <aside class="space-y-4 lg:sticky lg:top-24 lg:self-start">
-
-          <!-- status -->
-          <div class="card p-5">
-            <p class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Статус</p>
-
-            @if (auth.isStaff()) {
-              <div class="relative mt-3">
-                <select class="field appearance-none pr-10 font-medium" [value]="t.status" [disabled]="busy() === 'status'"
-                        (change)="onStatusSelect($any($event.target))" aria-label="Статус">
-                  @for (s of statuses; track s) {
-                    <option [value]="s">{{ statusMeta[s].label }}</option>
+        @for (c of comments(); track c.id) {
+          <div class="rounded-2xl border p-5" [class]="isStaffComment(c) ? 'border-brand-200 bg-brand-50' : 'border-slate-200 bg-white'">
+            <div class="flex items-center gap-3">
+              <app-avatar [name]="c.author?.full_name" [size]="36" />
+              <div>
+                <p class="text-sm font-semibold text-slate-900">
+                  {{ c.author?.full_name ?? 'Непознат корисник' }}
+                  @if (isStaffComment(c)) {
+                    <span class="ml-1 rounded-full bg-brand-600 px-2 py-0.5 text-xs font-medium text-white">Студентска служба</span>
                   }
-                </select>
-                <app-icon [name]="busy() === 'status' ? 'spinner' : 'chevron-down'" class="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 text-slate-400"
-                          [class.animate-spin]="busy() === 'status'" />
+                </p>
+                <p class="text-xs text-slate-500">{{ c.created_at | date: 'dd.MM.yyyy HH:mm' }}</p>
               </div>
-              <p class="mt-2 text-xs text-slate-500">{{ statusMeta[t.status].hint }}</p>
+            </div>
+            <p class="mt-4 whitespace-pre-wrap text-slate-700">{{ c.body }}</p>
+          </div>
+        }
 
-              @if (quickActions().length) {
-                <div class="mt-4 grid gap-1 border-t border-slate-100 pt-4">
-                  @for (a of quickActions(); track a.status) {
-                    <button type="button" (click)="setStatus(a.status)" [disabled]="busy() !== null"
-                            class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-slate-600 transition disabled:opacity-50"
-                            [class]="a.tone">
-                      <app-icon [name]="a.icon" class="size-4" /> {{ a.label }}
-                    </button>
-                  }
-                </div>
-              }
-            } @else {
-              <ol class="mt-4 space-y-0">
-                @for (step of progress(); track step.label; let last = $last) {
-                  <li class="relative flex gap-3 pb-5 last:pb-0">
-                    @if (!last) {
-                      <span class="absolute top-7 left-[13px] h-[calc(100%-1.5rem)] w-px"
-                            [class]="step.done ? 'bg-brand-500' : 'bg-slate-200'"></span>
-                    }
-                    <span class="relative flex size-7 shrink-0 items-center justify-center rounded-full transition"
-                          [class]="step.done
-                            ? 'bg-brand-600 text-white'
-                            : step.current
-                              ? (t.status === 'rejected' ? 'bg-rose-600 text-white ring-4 ring-rose-100' : 'bg-white text-brand-600 ring-2 ring-brand-500 ring-offset-2')
-                              : 'bg-slate-100 text-slate-400'">
-                      <app-icon [name]="step.done ? 'check' : step.icon" class="size-3.5" [stroke]="2.25" />
-                    </span>
-                    <span class="pt-1 text-sm" [class]="step.current ? 'font-semibold text-slate-900' : step.done ? 'text-slate-700' : 'text-slate-400'">
-                      {{ step.label }}
-                    </span>
-                  </li>
+        @if (canReply()) {
+          <div class="card p-4">
+            <textarea #composer rows="3" [value]="reply()" (input)="reply.set(composer.value)"
+                      [placeholder]="auth.isStaff() ? 'Одговори на студентот…' : 'Напиши одговор до службата…'"
+                      class="field"></textarea>
+            <div class="mt-3 flex justify-end">
+              <button type="button" (click)="sendReply()" [disabled]="!reply().trim() || sending()" class="btn btn-primary">
+                {{ sending() ? 'Се праќа…' : 'Испрати' }}
+                <app-icon name="send" class="size-4" />
+              </button>
+            </div>
+          </div>
+        } @else {
+          <p class="rounded-2xl border border-dashed border-slate-300 p-5 text-sm text-slate-500">
+            Барањето е завршено. Ако ти треба уште нешто, поднеси ново барање.
+          </p>
+        }
+      </div>
+
+      <aside class="space-y-4">
+        <div class="card space-y-5 p-5">
+          <div>
+            <p class="text-xs font-semibold text-slate-400 uppercase">Статус</p>
+            @if (auth.isStaff()) {
+              <select class="field mt-2" [value]="t.status" [disabled]="busy()" (change)="onStatusSelect($any($event.target))">
+                @for (s of statuses; track s) {
+                  <option [value]="s">{{ statusMeta[s].label }}</option>
                 }
-              </ol>
-              <p class="mt-4 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-500">{{ statusMeta[t.status].hint }}</p>
+              </select>
+            } @else {
+              <div class="mt-2"><app-status-badge [status]="t.status" /></div>
+            }
+            <p class="mt-2 text-xs text-slate-500">{{ statusMeta[t.status].hint }}</p>
+          </div>
 
-              @if (isOwner() && isActive(t.status)) {
-                <button type="button" (click)="closeAsOwner()" [disabled]="busy() !== null" class="btn btn-danger mt-4 w-full">
-                  <app-icon name="x" class="size-4" /> Повлечи барање
+          <div>
+            <p class="text-xs font-semibold text-slate-400 uppercase">Приоритет</p>
+            @if (auth.isStaff()) {
+              <select class="field mt-2" [value]="t.priority" [disabled]="busy()" (change)="onPrioritySelect($any($event.target))">
+                @for (p of priorities; track p) {
+                  <option [value]="p">{{ priorityMeta[p].label }}</option>
+                }
+              </select>
+            } @else {
+              <p class="mt-2 flex items-center gap-2 text-sm text-slate-700">
+                <app-priority-icon [priority]="t.priority" /> {{ priorityMeta[t.priority].label }}
+              </p>
+            }
+          </div>
+
+          <div>
+            <p class="text-xs font-semibold text-slate-400 uppercase">Референт</p>
+            @if (t.assignee) {
+              <p class="mt-2 flex items-center gap-2 text-sm text-slate-700">
+                <app-avatar [name]="t.assignee.full_name" [size]="26" /> {{ t.assignee.full_name }}
+              </p>
+            } @else {
+              <p class="mt-2 text-sm text-slate-500">Недоделено</p>
+            }
+            @if (auth.isStaff()) {
+              @if (assignedToMe()) {
+                <button type="button" (click)="unassign()" [disabled]="busy()" class="btn btn-ghost mt-3 w-full">Ослободи</button>
+              } @else {
+                <button type="button" (click)="assignToMe()" [disabled]="busy()" class="btn btn-secondary mt-3 w-full">
+                  <app-icon name="hand" class="size-4" /> Преземи го барањето
                 </button>
               }
             }
           </div>
+        </div>
 
-          <!-- details -->
-          <div class="card divide-y divide-slate-100">
-            <div class="p-5">
-              <p class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Референт</p>
-              <div class="mt-3 flex items-center gap-3">
-                @if (t.assignee) {
-                  <app-avatar [name]="t.assignee.full_name" [size]="32" />
-                  <div class="min-w-0 flex-1">
-                    <p class="truncate text-sm font-medium text-slate-900">{{ t.assignee.full_name }}</p>
-                    <p class="text-xs text-slate-500">{{ assignedToMe() ? 'Ти си задолжен/а' : 'Задолжен/а за барањето' }}</p>
-                  </div>
-                } @else {
-                  <span class="flex size-8 items-center justify-center rounded-full border border-dashed border-slate-300 text-slate-400">
-                    <app-icon name="user" class="size-4" />
-                  </span>
-                  <p class="flex-1 text-sm text-slate-500">Сè уште недоделено</p>
-                }
-              </div>
-              @if (auth.isStaff()) {
-                @if (!assignedToMe()) {
-                  <button type="button" (click)="assignToMe()" [disabled]="busy() !== null" class="btn btn-secondary btn-sm mt-3 w-full">
-                    @if (busy() === 'assign') { <app-icon name="spinner" class="size-3.5 animate-spin" /> }
-                    @else { <app-icon name="hand" class="size-3.5" /> }
-                    Преземи го барањето
-                  </button>
-                } @else {
-                  <button type="button" (click)="unassign()" [disabled]="busy() !== null" class="btn btn-ghost btn-sm mt-3 w-full">Ослободи</button>
-                }
-              }
-            </div>
-
-            <div class="p-5">
-              <p class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Приоритет</p>
-              @if (auth.isStaff()) {
-                <div class="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-slate-100/80 p-1">
-                  @for (p of priorities; track p) {
-                    <button type="button" (click)="setPriority(p)" [disabled]="busy() !== null"
-                            class="flex flex-col items-center gap-1 rounded-lg px-1 py-1.5 text-[11px] font-medium transition"
-                            [class]="t.priority === p ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/80' : 'text-slate-500 hover:text-slate-800'">
-                      <app-priority-icon [priority]="p" /> {{ priorityMeta[p].label }}
-                    </button>
-                  }
-                </div>
-              } @else {
-                <p class="mt-3 flex items-center gap-2 text-sm text-slate-700">
-                  <app-priority-icon [priority]="t.priority" /> {{ priorityMeta[t.priority].label }}
-                </p>
-              }
-            </div>
-
-            <dl class="space-y-3 p-5 text-sm">
-              <div class="flex items-start justify-between gap-3">
-                <dt class="text-slate-500">Категорија</dt>
-                <dd class="flex items-center gap-1.5 text-right font-medium text-slate-800">
-                  <app-icon [name]="categoryIcon(t.category_id)" class="size-3.5 text-slate-400" />
-                  {{ t.category?.name ?? '—' }}
-                </dd>
-              </div>
-              <div class="flex items-start justify-between gap-3">
-                <dt class="text-slate-500">Студент</dt>
-                <dd class="text-right font-medium text-slate-800">
-                  {{ t.requester?.full_name ?? '—' }}
-                  @if (t.requester?.student_index) {
-                    <span class="block font-mono text-xs font-normal text-slate-400">{{ t.requester?.student_index }}</span>
-                  }
-                </dd>
-              </div>
-              <div class="flex items-start justify-between gap-3">
-                <dt class="text-slate-500">Поднесено</dt>
-                <dd class="text-right text-slate-800">{{ t.created_at | date: 'dd.MM.yyyy HH:mm' }}</dd>
-              </div>
-              <div class="flex items-start justify-between gap-3">
-                <dt class="text-slate-500">Последна промена</dt>
-                <dd class="text-right text-slate-800">{{ t.updated_at | relativeTime }}</dd>
-              </div>
-            </dl>
+        <div class="card space-y-3 p-5 text-sm">
+          <div class="flex justify-between gap-3">
+            <span class="text-slate-500">Категорија</span>
+            <span class="text-right font-medium text-slate-800">{{ t.category?.name ?? '—' }}</span>
           </div>
+          <div class="flex justify-between gap-3">
+            <span class="text-slate-500">Индекс</span>
+            <span class="font-medium text-slate-800">{{ t.requester?.student_index ?? '—' }}</span>
+          </div>
+          <div class="flex justify-between gap-3">
+            <span class="text-slate-500">Поднесено</span>
+            <span class="text-slate-800">{{ t.created_at | date: 'dd.MM.yyyy HH:mm' }}</span>
+          </div>
+          <div class="flex justify-between gap-3">
+            <span class="text-slate-500">Последна промена</span>
+            <span class="text-slate-800">{{ t.updated_at | relativeTime }}</span>
+          </div>
+        </div>
 
-          <p class="flex items-center justify-center gap-1.5 text-xs text-slate-400">
-            <span class="relative flex size-2">
-              <span class="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
-            </span>
-            Се освежува автоматски
-          </p>
-        </aside>
-      </div>
-    }
-  </div>
+        @if (isOwner() && isActive(t.status)) {
+          <button type="button" (click)="closeAsOwner()" [disabled]="busy()"
+                  class="btn w-full border border-rose-200 bg-white text-rose-600 hover:bg-rose-50">
+            Повлечи барање
+          </button>
+        }
+      </aside>
+    </div>
+  }
 </section>

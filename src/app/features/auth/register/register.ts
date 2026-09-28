@@ -25,7 +25,6 @@ export class Register {
   protected readonly loading = signal(false);
   protected readonly showPassword = signal(false);
   protected readonly submitted = signal(false);
-  /** Shown when Supabase requires e-mail confirmation before the first login. */
   protected readonly checkInbox = signal(false);
 
   protected readonly form = this.fb.nonNullable.group({
@@ -37,7 +36,6 @@ export class Register {
 
   private readonly password = toSignal(this.form.controls.password.valueChanges, { initialValue: '' });
 
-  /** 0–4: length, length ≥ 10, has a digit, has a symbol or capital. */
   protected readonly strength = computed(() => {
     const p = this.password();
     if (!p) return 0;
