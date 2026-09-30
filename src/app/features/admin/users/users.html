@@ -48,11 +48,11 @@
               <td class="px-5 py-3 text-slate-500">{{ u.student_index || '—' }}</td>
               <td class="hidden px-5 py-3 text-slate-500 md:table-cell">{{ u.created_at | date: 'dd.MM.yyyy' }}</td>
               <td class="px-5 py-3">
-                <select class="field w-44 py-2" [value]="u.role"
+                <select class="field w-44 py-2"
                         [disabled]="u.id === auth.userId() || saving() === u.id"
                         (change)="changeRole(u, $any($event.target))">
                   @for (r of roles; track r) {
-                    <option [value]="r">{{ roleLabels[r] }}</option>
+                    <option [value]="r" [selected]="r === u.role">{{ roleLabels[r] }}</option>
                   }
                 </select>
               </td>
