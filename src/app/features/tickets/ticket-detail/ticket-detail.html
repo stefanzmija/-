@@ -93,9 +93,9 @@
           <div>
             <p class="text-xs font-semibold text-slate-400 uppercase">Статус</p>
             @if (auth.isStaff()) {
-              <select class="field mt-2" [value]="t.status" [disabled]="busy()" (change)="onStatusSelect($any($event.target))">
+              <select class="field mt-2" [disabled]="busy()" (change)="onStatusSelect($any($event.target))">
                 @for (s of statuses; track s) {
-                  <option [value]="s">{{ statusMeta[s].label }}</option>
+                  <option [value]="s" [selected]="s === t.status">{{ statusMeta[s].label }}</option>
                 }
               </select>
             } @else {
@@ -107,9 +107,9 @@
           <div>
             <p class="text-xs font-semibold text-slate-400 uppercase">Приоритет</p>
             @if (auth.isStaff()) {
-              <select class="field mt-2" [value]="t.priority" [disabled]="busy()" (change)="onPrioritySelect($any($event.target))">
+              <select class="field mt-2" [disabled]="busy()" (change)="onPrioritySelect($any($event.target))">
                 @for (p of priorities; track p) {
-                  <option [value]="p">{{ priorityMeta[p].label }}</option>
+                  <option [value]="p" [selected]="p === t.priority">{{ priorityMeta[p].label }}</option>
                 }
               </select>
             } @else {
